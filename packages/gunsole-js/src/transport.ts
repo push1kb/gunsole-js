@@ -64,7 +64,7 @@ export class Transport {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const response = await this.fetch(`${this.endpoint}/v1/logs`, {
+        const response = await this.fetch(`${this.endpoint}/logs`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -3,7 +3,7 @@ import { Transport } from "./transport";
 import type {
   GunsoleClientConfig,
   InternalLogEntry,
-  LogEntry,
+  LogLevel,
   UserInfo,
 } from "./types";
 import { normalizeTimestamp } from "./utils/time";
@@ -43,13 +43,82 @@ export class GunsoleClient {
   }
 
   /**
-   * Log an entry
+   * Log an info-level message
    */
-  log(entry: LogEntry): void {
+  log(
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
+    this.logEntry("info", message, bucket, context, tags);
+  }
+
+  /**
+   * Log an info-level message
+   */
+  info(
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
+    this.logEntry("info", message, bucket, context, tags);
+  }
+
+  /**
+   * Log a debug-level message
+   */
+  debug(
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
+    this.logEntry("debug", message, bucket, context, tags);
+  }
+
+  /**
+   * Log a warn-level message
+   */
+  warn(
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
+    this.logEntry("warn", message, bucket, context, tags);
+  }
+
+  /**
+   * Log an error-level message
+   */
+  error(
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
+    this.logEntry("error", message, bucket, context, tags);
+  }
+
+  /**
+   * Internal method to log an entry
+   */
+  private logEntry(
+    level: LogLevel,
+    message: string,
+    bucket: string,
+    context?: Record<string, unknown>,
+    tags?: Record<string, string>
+  ): void {
     try {
       const internalEntry: InternalLogEntry = {
-        ...entry,
-        timestamp: normalizeTimestamp(entry.timestamp),
+        level,
+        bucket,
+        message,
+        context,
+        timestamp: normalizeTimestamp(undefined),
         userId: this.user?.id,
         sessionId: this.sessionId ?? undefined,
         env: this.config.env || undefined,
@@ -57,7 +126,7 @@ export class GunsoleClient {
         appVersion: this.config.appVersion || undefined,
         tags: {
           ...this.config.defaultTags,
-          ...entry.tags,
+          ...tags,
         },
       };
 
@@ -70,7 +139,7 @@ export class GunsoleClient {
     } catch (error) {
       // Silently swallow errors - never crash the host app
       if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in log():", error);
+        console.warn("[Gunsole] Error in logEntry():", error);
       }
     }
   }
@@ -135,42 +204,32 @@ export class GunsoleClient {
       this.globalHandlers.unhandledRejection = (
         event: PromiseRejectionEvent
       ) => {
-        this.log({
-          level: "error",
-          bucket: "unhandled_rejection",
-          message: "Unhandled promise rejection",
-          context: {
-            reason: String(event.reason),
-            error:
-              event.reason instanceof Error
-                ? {
-                    name: event.reason.name,
-                    message: event.reason.message,
-                    stack: event.reason.stack,
-                  }
-                : event.reason,
-          },
+        this.error("Unhandled promise rejection", "unhandled_rejection", {
+          reason: String(event.reason),
+          error:
+            event.reason instanceof Error
+              ? {
+                  name: event.reason.name,
+                  message: event.reason.message,
+                  stack: event.reason.stack,
+                }
+              : event.reason,
         });
       };
 
       // Global errors
       this.globalHandlers.error = (event: ErrorEvent) => {
-        this.log({
-          level: "error",
-          bucket: "global_error",
-          message: event.message || "Global error",
-          context: {
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            error: event.error
-              ? {
-                  name: event.error.name,
-                  message: event.error.message,
-                  stack: event.error.stack,
-                }
-              : undefined,
-          },
+        this.error(event.message || "Global error", "global_error", {
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          error: event.error
+            ? {
+                name: event.error.name,
+                message: event.error.message,
+                stack: event.error.stack,
+              }
+            : undefined,
         });
       };
 
@@ -187,33 +246,23 @@ export class GunsoleClient {
           reason: unknown,
           _promise: Promise<unknown>
         ) => {
-          this.log({
-            level: "error",
-            bucket: "unhandled_rejection",
-            message: "Unhandled promise rejection",
-            context: {
-              reason: String(reason),
-              error:
-                reason instanceof Error
-                  ? {
-                      name: reason.name,
-                      message: reason.message,
-                      stack: reason.stack,
-                    }
-                  : reason,
-            },
+          this.error("Unhandled promise rejection", "unhandled_rejection", {
+            reason: String(reason),
+            error:
+              reason instanceof Error
+                ? {
+                    name: reason.name,
+                    message: reason.message,
+                    stack: reason.stack,
+                  }
+                : reason,
           });
         };
 
         this.globalHandlers.uncaughtException = (error: Error) => {
-          this.log({
-            level: "error",
-            bucket: "uncaught_exception",
-            message: error.message,
-            context: {
-              name: error.name,
-              stack: error.stack,
-            },
+          this.error(error.message, "uncaught_exception", {
+            name: error.name,
+            stack: error.stack,
           });
         };
 

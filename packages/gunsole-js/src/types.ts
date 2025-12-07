@@ -20,8 +20,6 @@ export type ClientMode = "desktop" | "local" | "cloud";
  * Log entry structure
  */
 export interface LogEntry {
-  /** Log level */
-  level: LogLevel;
   /** Bucket/category for the log */
   bucket: string;
   /** Human-readable message */
@@ -80,6 +78,8 @@ export interface GunsoleClientConfig {
  * Internal log entry with metadata
  */
 export interface InternalLogEntry extends LogEntry {
+  /** Log level */
+  level: LogLevel;
   /** User ID at time of log */
   userId?: string;
   /** Session ID at time of log */

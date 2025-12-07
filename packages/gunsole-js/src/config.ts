@@ -1,11 +1,11 @@
-import type { ClientMode, GunsoleClientConfig } from "./types.js";
+import type { ClientMode, GunsoleClientConfig } from "./types";
 
 /**
  * Default endpoints for each mode
  */
 const DEFAULT_ENDPOINTS: Record<ClientMode, string> = {
   desktop: "http://localhost:8787",
-  local: "http://localhost:8787",
+  local: "http://localhost:17655",
   cloud: "https://api.gunsole.com",
 };
 

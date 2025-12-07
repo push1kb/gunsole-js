@@ -1,5 +1,5 @@
-import { GunsoleClient } from "./client.js";
-import type { GunsoleClientConfig } from "./types.js";
+import { GunsoleClient } from "./client";
+import type { GunsoleClientConfig } from "./types";
 
 /**
  * Create a new Gunsole client instance
@@ -16,8 +16,7 @@ import type { GunsoleClientConfig } from "./types.js";
  * });
  *
  * gunsole.log({
- *   level: "info",
- *   bucket: "user_action",
+ *   bucket: "frontend",
  *   message: "User clicked button",
  * });
  * ```
