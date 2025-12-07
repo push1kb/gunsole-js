@@ -41,15 +41,13 @@ describe("GunsoleClient", () => {
     });
 
     smallBatchClient.log({
-      level: "info",
-      bucket: "test",
       message: "Log 1",
+      bucket: "test",
     });
 
     smallBatchClient.log({
-      level: "info",
-      bucket: "test",
       message: "Log 2",
+      bucket: "test",
     });
 
     // Wait for async flush
@@ -77,9 +75,8 @@ describe("GunsoleClient", () => {
     client.setSessionId("session-456");
 
     client.log({
-      level: "info",
-      bucket: "test",
       message: "Test log",
+      bucket: "test",
     });
 
     await client.flush();
@@ -104,9 +101,8 @@ describe("GunsoleClient", () => {
     });
 
     taggedClient.log({
-      level: "info",
-      bucket: "test",
       message: "Test log",
+      bucket: "test",
       tags: { feature: "auth" },
     });
 
@@ -126,9 +122,8 @@ describe("GunsoleClient", () => {
   it("should not throw errors on invalid log entries", () => {
     expect(() => {
       client.log({
-        level: "info",
-        bucket: "",
         message: "",
+        bucket: "",
       });
     }).not.toThrow();
   });
@@ -138,9 +133,8 @@ describe("GunsoleClient", () => {
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
     client.log({
-      level: "info",
-      bucket: "test",
       message: "Test log",
+      bucket: "test",
     });
 
     // Should not throw

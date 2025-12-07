@@ -12,6 +12,7 @@ export type {
   GunsoleClientConfig,
   LogEntry,
   LogLevel,
+  LogOptions,
   UserInfo,
   ClientMode,
 } from "./types";

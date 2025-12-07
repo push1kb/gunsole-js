@@ -23,9 +23,8 @@ function App() {
     gunsole.attachGlobalErrorHandlers();
 
     gunsole.log({
-      level: "info",
-      bucket: "app_lifecycle",
       message: "App mounted",
+      bucket: "app_lifecycle",
       context: { framework: "react" },
     });
 
@@ -36,31 +35,43 @@ function App() {
   }, [userId, sessionId]);
 
   const handleLog = (level: "info" | "debug" | "warn" | "error") => {
-    gunsole.log({
-      level,
-      bucket: "user_action",
+    const logOptions = {
       message: `User clicked ${level} log button`,
+      bucket: "user_action",
       context: { count, timestamp: Date.now() },
       tags: { action: "button_click", level },
-    });
+    };
+
+    switch (level) {
+      case "info":
+        gunsole.info(logOptions);
+        break;
+      case "debug":
+        gunsole.debug(logOptions);
+        break;
+      case "warn":
+        gunsole.warn(logOptions);
+        break;
+      case "error":
+        gunsole.error(logOptions);
+        break;
+    }
   };
 
   const handleIncrement = () => {
     const newCount = count + 1;
     setCount(newCount);
     gunsole.log({
-      level: "info",
-      bucket: "counter",
       message: "Counter incremented",
+      bucket: "counter",
       context: { count: newCount },
     });
   };
 
   const handleError = () => {
-    gunsole.log({
-      level: "error",
-      bucket: "test_error",
+    gunsole.error({
       message: "Test error logged",
+      bucket: "test_error",
       context: { error: "This is a test error", stack: "test stack" },
     });
   };

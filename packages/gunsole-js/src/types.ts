@@ -17,6 +17,20 @@ export type LogLevel = "info" | "debug" | "warn" | "error";
 export type ClientMode = "desktop" | "local" | "cloud";
 
 /**
+ * Options for logging methods (log, info, debug, warn, error)
+ */
+export interface LogOptions {
+  /** Human-readable message */
+  message: string;
+  /** Bucket/category for the log */
+  bucket: string;
+  /** Additional context data */
+  context?: Record<string, unknown>;
+  /** Tags for filtering/grouping */
+  tags?: Record<string, string>;
+}
+
+/**
  * Log entry structure
  */
 export interface LogEntry {

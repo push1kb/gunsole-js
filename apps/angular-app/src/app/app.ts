@@ -33,9 +33,8 @@ export class App implements onDestroy {
     gunsole.attachGlobalErrorHandlers();
 
     gunsole.log({
-      level: "info",
-      bucket: "app_lifecycle",
       message: "App initialized",
+      bucket: "app_lifecycle",
       context: { framework: "angular" },
     });
   }
@@ -46,31 +45,43 @@ export class App implements onDestroy {
   }
 
   protected handleLog(level: "info" | "debug" | "warn" | "error"): void {
-    gunsole.log({
-      level,
-      bucket: "user_action",
+    const logOptions = {
       message: `User clicked ${level} log button`,
+      bucket: "user_action",
       context: { count: this.count(), timestamp: Date.now() },
       tags: { action: "button_click", level },
-    });
+    };
+
+    switch (level) {
+      case "info":
+        gunsole.info(logOptions);
+        break;
+      case "debug":
+        gunsole.debug(logOptions);
+        break;
+      case "warn":
+        gunsole.warn(logOptions);
+        break;
+      case "error":
+        gunsole.error(logOptions);
+        break;
+    }
   }
 
   protected handleIncrement(): void {
     const newCount = this.count() + 1;
     this.count.set(newCount);
     gunsole.log({
-      level: "info",
-      bucket: "counter",
       message: "Counter incremented",
+      bucket: "counter",
       context: { count: newCount },
     });
   }
 
   protected handleError(): void {
-    gunsole.log({
-      level: "error",
-      bucket: "test_error",
+    gunsole.error({
       message: "Test error logged",
+      bucket: "test_error",
       context: { error: "This is a test error", stack: "test stack" },
     });
   }
