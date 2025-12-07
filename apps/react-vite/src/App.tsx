@@ -76,6 +76,10 @@ function App() {
     });
   };
 
+  const handleBreakingError = () => {
+    throw new Error("This is a breaking error");
+  };
+
   const handleFlush = async () => {
     await gunsole.flush();
     alert("Logs flushed!");
@@ -137,6 +141,9 @@ function App() {
           <div className="button-group">
             <button type="button" onClick={handleError}>
               Trigger Error Log
+            </button>
+            <button type="button" onClick={handleBreakingError}>
+              Trigger breaking error
             </button>
             <button type="button" onClick={handleFlush}>
               Flush Logs
