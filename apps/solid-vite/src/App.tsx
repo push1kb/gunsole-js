@@ -1,5 +1,5 @@
-import { createSignal, onMount, onCleanup } from "solid-js";
 import { createGunsoleClient } from "gunsole-js";
+import { createSignal, onCleanup, onMount } from "solid-js";
 import "./App.css";
 
 const gunsole = createGunsoleClient({
@@ -76,16 +76,26 @@ function App() {
       <div class="card">
         <div class="section">
           <h2>Counter: {count()}</h2>
-          <button onClick={handleIncrement}>Increment</button>
+          <button type="button" onClick={handleIncrement}>
+            Increment
+          </button>
         </div>
 
         <div class="section">
           <h2>Log Actions</h2>
           <div class="button-group">
-            <button onClick={() => handleLog("info")}>Log Info</button>
-            <button onClick={() => handleLog("debug")}>Log Debug</button>
-            <button onClick={() => handleLog("warn")}>Log Warn</button>
-            <button onClick={() => handleLog("error")}>Log Error</button>
+            <button type="button" onClick={() => handleLog("info")}>
+              Log Info
+            </button>
+            <button type="button" onClick={() => handleLog("debug")}>
+              Log Debug
+            </button>
+            <button type="button" onClick={() => handleLog("warn")}>
+              Log Warn
+            </button>
+            <button type="button" onClick={() => handleLog("error")}>
+              Log Error
+            </button>
           </div>
         </div>
 
@@ -114,8 +124,12 @@ function App() {
         <div class="section">
           <h2>Actions</h2>
           <div class="button-group">
-            <button onClick={handleError}>Trigger Error Log</button>
-            <button onClick={handleFlush}>Flush Logs</button>
+            <button type="button" onClick={handleError}>
+              Trigger Error Log
+            </button>
+            <button type="button" onClick={handleFlush}>
+              Flush Logs
+            </button>
           </div>
         </div>
       </div>

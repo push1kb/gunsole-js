@@ -56,4 +56,3 @@ export function normalizeConfig(
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
   };
 }
-

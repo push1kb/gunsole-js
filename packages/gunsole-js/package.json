@@ -13,9 +13,7 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -28,12 +26,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write ."
   },
-  "keywords": [
-    "gunsole",
-    "logging",
-    "analytics",
-    "developer-tools"
-  ],
+  "keywords": ["gunsole", "logging", "analytics", "developer-tools"],
   "author": "vijaypushkin",
   "license": "MIT",
   "repository": {

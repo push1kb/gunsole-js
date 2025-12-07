@@ -15,9 +15,7 @@ export function getCurrentTimestampMs(): number {
 /**
  * Normalize timestamp to ISO string
  */
-export function normalizeTimestamp(
-  timestamp?: string | number
-): string {
+export function normalizeTimestamp(timestamp?: string | number): string {
   if (!timestamp) {
     return getCurrentTimestamp();
   }
@@ -27,4 +25,3 @@ export function normalizeTimestamp(
   // Unix timestamp (milliseconds)
   return new Date(timestamp).toISOString();
 }
-

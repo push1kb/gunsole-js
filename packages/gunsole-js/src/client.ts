@@ -1,12 +1,12 @@
+import { normalizeConfig } from "./config.js";
+import { Transport } from "./transport.js";
 import type {
   GunsoleClientConfig,
+  InternalLogEntry,
   LogEntry,
   LogLevel,
   UserInfo,
-  InternalLogEntry,
 } from "./types.js";
-import { normalizeConfig } from "./config.js";
-import { Transport } from "./transport.js";
 import { normalizeTimestamp } from "./utils/time.js";
 
 /**
@@ -132,20 +132,23 @@ export class GunsoleClient {
       }
 
       // Unhandled promise rejections
-      this.globalHandlers.unhandledRejection = (event: PromiseRejectionEvent) => {
+      this.globalHandlers.unhandledRejection = (
+        event: PromiseRejectionEvent
+      ) => {
         this.log({
           level: "error",
           bucket: "unhandled_rejection",
           message: "Unhandled promise rejection",
           context: {
             reason: String(event.reason),
-            error: event.reason instanceof Error
-              ? {
-                  name: event.reason.name,
-                  message: event.reason.message,
-                  stack: event.reason.stack,
-                }
-              : event.reason,
+            error:
+              event.reason instanceof Error
+                ? {
+                    name: event.reason.name,
+                    message: event.reason.message,
+                    stack: event.reason.stack,
+                  }
+                : event.reason,
           },
         });
       };
@@ -182,7 +185,7 @@ export class GunsoleClient {
       if (typeof process !== "undefined") {
         this.globalHandlers.unhandledRejectionNode = (
           reason: unknown,
-          promise: Promise<unknown>
+          _promise: Promise<unknown>
         ) => {
           this.log({
             level: "error",
@@ -305,4 +308,3 @@ export class GunsoleClient {
     this.flush();
   }
 }
-

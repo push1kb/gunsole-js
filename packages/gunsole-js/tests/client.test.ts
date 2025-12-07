@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createGunsoleClient } from "../src/index.js";
 import type { GunsoleClientConfig } from "../src/types.js";
 
@@ -147,4 +147,3 @@ describe("GunsoleClient", () => {
     await expect(client.flush()).resolves.toBeUndefined();
   });
 });
-

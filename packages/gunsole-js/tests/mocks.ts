@@ -45,4 +45,3 @@ export function createMockGunsoleClient(): GunsoleClient {
     _getSessionId: () => string | null;
   };
 }
-

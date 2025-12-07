@@ -15,4 +15,3 @@ export type {
   UserInfo,
   ClientMode,
 } from "./types.js";
-

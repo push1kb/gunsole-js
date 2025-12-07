@@ -3,8 +3,7 @@
  */
 export function isBrowser(): boolean {
   return (
-    typeof window !== "undefined" &&
-    typeof window.document !== "undefined"
+    typeof window !== "undefined" && typeof window.document !== "undefined"
   );
 }
 
@@ -37,4 +36,3 @@ export function getFetch(): typeof fetch {
   }
   throw new Error("Unsupported environment: neither browser nor Node.js");
 }
-

@@ -1,5 +1,5 @@
-import type { GunsoleClientConfig } from "./types.js";
 import { GunsoleClient } from "./client.js";
+import type { GunsoleClientConfig } from "./types.js";
 
 /**
  * Create a new Gunsole client instance
@@ -27,4 +27,3 @@ export function createGunsoleClient(
 ): GunsoleClient {
   return new GunsoleClient(config);
 }
-

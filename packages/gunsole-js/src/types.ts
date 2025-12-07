@@ -89,4 +89,3 @@ export interface BatchPayload {
   projectId: string;
   logs: InternalLogEntry[];
 }
-

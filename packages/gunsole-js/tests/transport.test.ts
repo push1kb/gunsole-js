@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Transport } from "../src/transport.js";
 import type { InternalLogEntry } from "../src/types.js";
 
@@ -130,4 +130,3 @@ describe("Transport", () => {
     expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 });
-

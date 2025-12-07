@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { createGunsoleClient } from "gunsole-js";
+import { useEffect, useState } from "react";
 
 const gunsole = createGunsoleClient({
   projectId: "test-project-nextjs",
@@ -80,6 +80,7 @@ export default function GunsoleTest() {
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <h2 className="text-2xl font-semibold mb-4">Counter: {count}</h2>
           <button
+            type="button"
             onClick={handleIncrement}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -91,24 +92,28 @@ export default function GunsoleTest() {
           <h2 className="text-2xl font-semibold mb-4">Log Actions</h2>
           <div className="flex flex-wrap gap-4">
             <button
+              type="button"
               onClick={() => handleLog("info")}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               Log Info
             </button>
             <button
+              type="button"
               onClick={() => handleLog("debug")}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               Log Debug
             </button>
             <button
+              type="button"
               onClick={() => handleLog("warn")}
               className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
             >
               Log Warn
             </button>
             <button
+              type="button"
               onClick={() => handleLog("error")}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
@@ -145,12 +150,14 @@ export default function GunsoleTest() {
           <h2 className="text-2xl font-semibold mb-4">Actions</h2>
           <div className="flex flex-wrap gap-4">
             <button
+              type="button"
               onClick={handleError}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Trigger Error Log
             </button>
             <button
+              type="button"
               onClick={handleFlush}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >

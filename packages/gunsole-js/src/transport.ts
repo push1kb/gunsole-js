@@ -15,7 +15,7 @@ const BASE_DELAY_MS = 1000;
  * Calculate exponential backoff delay
  */
 function calculateBackoffDelay(attempt: number): number {
-  return BASE_DELAY_MS * Math.pow(2, attempt);
+  return BASE_DELAY_MS * 2 ** attempt;
 }
 
 /**
@@ -73,14 +73,9 @@ export class Transport {
 
         // Non-2xx response
         const errorText = await response.text().catch(() => "Unknown error");
-        lastError = new Error(
-          `HTTP ${response.status}: ${errorText}`
-        );
+        lastError = new Error(`HTTP ${response.status}: ${errorText}`);
       } catch (error) {
-        lastError =
-          error instanceof Error
-            ? error
-            : new Error(String(error));
+        lastError = error instanceof Error ? error : new Error(String(error));
       }
 
       // If not the last attempt, wait before retrying
@@ -98,4 +93,3 @@ export class Transport {
     }
   }
 }
-
