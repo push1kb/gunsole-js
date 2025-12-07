@@ -1,3 +1,5 @@
+import type { FetchFunction } from "../types";
+
 /**
  * Check if running in a browser environment
  */
@@ -20,8 +22,13 @@ export function isNode(): boolean {
 
 /**
  * Get fetch implementation (browser or Node.js)
+ * If a custom fetch is provided, it will be used instead.
  */
-export function getFetch(): typeof fetch {
+export function getFetch(customFetch?: FetchFunction): FetchFunction {
+  if (customFetch) {
+    return customFetch;
+  }
+
   if (isBrowser()) {
     return window.fetch.bind(window);
   }
@@ -30,9 +37,10 @@ export function getFetch(): typeof fetch {
     if (typeof globalThis.fetch !== "undefined") {
       return globalThis.fetch;
     }
-    // Fallback for older Node.js versions
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("node-fetch");
+    // For older Node.js versions, user must provide their own fetch
+    throw new Error(
+      "fetch is not available. Please use Node.js 18+ or provide a custom fetch implementation in the config"
+    );
   }
   throw new Error("Unsupported environment: neither browser nor Node.js");
 }

@@ -1,4 +1,12 @@
 /**
+ * Fetch function type
+ */
+export type FetchFunction = (
+  input: RequestInfo | URL,
+  init?: RequestInit
+) => Promise<Response>;
+
+/**
  * Log level enumeration
  */
 export type LogLevel = "info" | "debug" | "warn" | "error";
@@ -64,6 +72,8 @@ export interface GunsoleClientConfig {
   batchSize?: number;
   /** Flush interval in milliseconds (default: 5000) */
   flushInterval?: number;
+  /** Custom fetch implementation (default: uses global fetch or throws error) */
+  fetch?: FetchFunction;
 }
 
 /**

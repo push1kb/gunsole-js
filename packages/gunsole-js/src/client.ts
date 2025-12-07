@@ -1,13 +1,12 @@
-import { normalizeConfig } from "./config.js";
-import { Transport } from "./transport.js";
+import { normalizeConfig } from "./config";
+import { Transport } from "./transport";
 import type {
   GunsoleClientConfig,
   InternalLogEntry,
   LogEntry,
-  LogLevel,
   UserInfo,
-} from "./types.js";
-import { normalizeTimestamp } from "./utils/time.js";
+} from "./types";
+import { normalizeTimestamp } from "./utils/time";
 
 /**
  * Global error handler state
@@ -37,7 +36,8 @@ export class GunsoleClient {
     this.transport = new Transport(
       this.config.endpoint,
       this.config.apiKey,
-      this.config.projectId
+      this.config.projectId,
+      this.config.fetch
     );
     this.startFlushTimer();
   }

@@ -6,12 +6,12 @@
  * @packageDocumentation
  */
 
-export { createGunsoleClient } from "./factory.js";
-export { GunsoleClient } from "./client.js";
+export { createGunsoleClient } from "./factory";
+export { GunsoleClient } from "./client";
 export type {
   GunsoleClientConfig,
   LogEntry,
   LogLevel,
   UserInfo,
   ClientMode,
-} from "./types.js";
+} from "./types";

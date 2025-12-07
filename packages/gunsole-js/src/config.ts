@@ -33,9 +33,13 @@ export function resolveEndpoint(
 /**
  * Normalize and validate client configuration
  */
-export function normalizeConfig(
-  config: GunsoleClientConfig
-): Required<GunsoleClientConfig> & { endpoint: string } {
+export function normalizeConfig(config: GunsoleClientConfig): Omit<
+  Required<GunsoleClientConfig>,
+  "fetch"
+> & {
+  endpoint: string;
+  fetch?: GunsoleClientConfig["fetch"];
+} {
   if (!config.projectId) {
     throw new Error("projectId is required");
   }
@@ -54,5 +58,6 @@ export function normalizeConfig(
     defaultTags: config.defaultTags ?? {},
     batchSize: config.batchSize ?? DEFAULT_CONFIG.batchSize,
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
+    fetch: config.fetch,
   };
 }

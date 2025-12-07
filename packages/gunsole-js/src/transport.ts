@@ -1,4 +1,4 @@
-import type { BatchPayload, InternalLogEntry } from "./types.js";
+import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types.js";
 import { getFetch } from "./utils/env.js";
 
 /**
@@ -32,11 +32,18 @@ export class Transport {
   private endpoint: string;
   private apiKey: string;
   private projectId: string;
+  private fetch: FetchFunction;
 
-  constructor(endpoint: string, apiKey: string, projectId: string) {
+  constructor(
+    endpoint: string,
+    apiKey: string,
+    projectId: string,
+    fetch?: FetchFunction
+  ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
     this.projectId = projectId;
+    this.fetch = fetch ?? getFetch();
   }
 
   /**
@@ -57,8 +64,7 @@ export class Transport {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const fetch = getFetch();
-        const response = await fetch(`${this.endpoint}/v1/logs`, {
+        const response = await this.fetch(`${this.endpoint}/v1/logs`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
