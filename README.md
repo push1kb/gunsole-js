@@ -2,7 +2,7 @@
 
 This monorepo contains the Gunsole JavaScript SDK and test applications for various frameworks.
 
-**Repository**: [https://github.com/vijaypushkin/gunsole-js](https://github.com/vijaypushkin/gunsole-js)
+**Repository**: [https://github.com/push1kb/gunsole-js](https://github.com/push1kb/gunsole-js)
 
 ## Structure
 
@@ -127,4 +127,4 @@ To test with different endpoints, modify the `createGunsoleClient` configuration
 
 MIT
 
-Copyright (c) 2025 vijaypushkin
+Copyright (c) 2025 [@push1kb](https://github.com/push1kb)
