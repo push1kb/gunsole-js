@@ -183,8 +183,17 @@ const logs: Array<{
 
 // --- Fire logs ---
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function main() {
-  console.log(`Firing ${logs.length} logs across ${buckets.length} buckets...\n`);
+  const args = process.argv.slice(2).filter((a) => a !== "--");
+  const delaySec = parseFloat(args[0] ?? "0");
+
+  console.log(`Firing ${logs.length} logs across ${buckets.length} buckets...`);
+  if (delaySec > 0) {
+    console.log(`Delay between logs: ${delaySec}s`);
+  }
+  console.log();
 
   for (let i = 0; i < logs.length; i++) {
     const { level, bucket, message, context, tags } = logs[i];
@@ -206,6 +215,10 @@ async function main() {
     }
 
     console.log(`  [${String(i + 1).padStart(3)}] ${level.toUpperCase().padEnd(5)} ${bucket.padEnd(14)} ${message}`);
+
+    if (delaySec > 0 && i < logs.length - 1) {
+      await sleep(delaySec * 1000);
+    }
   }
 
   console.log("\nFlushing remaining logs...");
