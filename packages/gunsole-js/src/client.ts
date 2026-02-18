@@ -22,7 +22,9 @@ interface GlobalErrorHandlers {
 /**
  * Gunsole client for sending logs and events
  */
-export class GunsoleClient<Tags extends Record<string, string> = Record<string, string>> {
+export class GunsoleClient<
+  Tags extends Record<string, string> = Record<string, string>,
+> {
   private config: ReturnType<typeof normalizeConfig>;
   private transport: Transport;
   private batch: InternalLogEntry[] = [];
@@ -48,9 +50,14 @@ export class GunsoleClient<Tags extends Record<string, string> = Record<string, 
    */
   log(options: LogOptions<Tags>): void;
   log(level: LogLevel, options: LogOptions<Tags>): void;
-  log(levelOrOptions: LogLevel | LogOptions<Tags>, maybeOptions?: LogOptions<Tags>): void {
-    const level: LogLevel = typeof levelOrOptions === "string" ? levelOrOptions : "info";
-    const options: LogOptions<Tags> = typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
+  log(
+    levelOrOptions: LogLevel | LogOptions<Tags>,
+    maybeOptions?: LogOptions<Tags>
+  ): void {
+    const level: LogLevel =
+      typeof levelOrOptions === "string" ? levelOrOptions : "info";
+    const options: LogOptions<Tags> =
+      typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
     try {
       const internalEntry: InternalLogEntry = {
         level,

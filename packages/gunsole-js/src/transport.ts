@@ -1,6 +1,5 @@
 import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types.js";
 import { getFetch } from "./utils/env.js";
-import * as pako from "pako";
 
 /**
  * Maximum number of retry attempts
@@ -27,19 +26,30 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Gzip compress a string using the native Compression Streams API
+ */
+async function gzipCompress(input: string): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const stream = new Blob([encoder.encode(input)])
+    .stream()
+    .pipeThrough(new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/**
  * Minify and optionally compress payload
  */
-function compressPayload(payload: BatchPayload, isDebug: boolean): string | Uint8Array {
-  // Minify JSON (remove whitespace)
+async function compressPayload(
+  payload: BatchPayload,
+  isDebug: boolean
+): Promise<string | Uint8Array> {
   const minified = JSON.stringify(payload);
 
-  // In debug mode, skip compression for readable payloads
   if (isDebug) {
     return minified;
   }
 
-  // Compress with gzip
-  return pako.gzip(minified);
+  return gzipCompress(minified);
 }
 
 /**
@@ -57,7 +67,7 @@ export class Transport {
     apiKey: string,
     projectId: string,
     fetch?: FetchFunction,
-    isDebug: boolean = false
+    isDebug = false
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
@@ -84,7 +94,7 @@ export class Transport {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const body = compressPayload(payload, this.isDebug);
+        const body = await compressPayload(payload, this.isDebug);
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,

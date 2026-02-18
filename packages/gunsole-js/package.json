@@ -34,13 +34,9 @@
     "url": "https://github.com/vijaypushkin/gunsole-js.git",
     "directory": "packages/gunsole-js"
   },
-  "dependencies": {
-    "pako": "^2.1.0"
-  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^20.11.5",
-    "@types/pako": "^2.0.3",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^1.2.1"

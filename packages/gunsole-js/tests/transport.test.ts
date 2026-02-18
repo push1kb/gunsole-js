@@ -12,7 +12,7 @@ describe("Transport", () => {
   const projectId = "test-project";
 
   beforeEach(() => {
-    transport = new Transport(endpoint, apiKey, projectId);
+    transport = new Transport(endpoint, apiKey, projectId, undefined, true);
     vi.clearAllMocks();
   });
 
@@ -36,7 +36,7 @@ describe("Transport", () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const call = mockFetch.mock.calls[0];
-    expect(call[0]).toBe(`${endpoint}/v1/logs`);
+    expect(call[0]).toBe(`${endpoint}/logs`);
     expect(call[1]?.method).toBe("POST");
     expect(call[1]?.headers).toMatchObject({
       "Content-Type": "application/json",

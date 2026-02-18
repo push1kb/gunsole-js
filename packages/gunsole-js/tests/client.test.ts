@@ -14,6 +14,7 @@ describe("GunsoleClient", () => {
       projectId: "test-project",
       apiKey: "test-api-key",
       mode: "cloud",
+      isDebug: true,
     };
     client = createGunsoleClient(config);
     vi.clearAllMocks();
@@ -55,7 +56,7 @@ describe("GunsoleClient", () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const call = mockFetch.mock.calls[0];
-    expect(call[0]).toBe("https://api.gunsole.com/v1/logs");
+    expect(call[0]).toBe("https://api.gunsole.com/logs");
     expect(call[1]?.method).toBe("POST");
 
     smallBatchClient.destroy();

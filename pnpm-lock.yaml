@@ -207,10 +207,6 @@ importers:
         version: 2.11.10(solid-js@1.9.10)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.93.2)(tsx@4.21.0))
 
   packages/gunsole-js:
-    dependencies:
-      pako:
-        specifier: ^2.1.0
-        version: 2.1.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4
@@ -218,9 +214,6 @@ importers:
       '@types/node':
         specifier: ^20.11.5
         version: 20.19.25
-      '@types/pako':
-        specifier: ^2.0.3
-        version: 2.0.4
       tsup:
         specifier: ^8.0.1
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)
@@ -2465,9 +2458,6 @@ packages:
   '@types/node@24.10.1':
     resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
 
-  '@types/pako@2.0.4':
-    resolution: {integrity: sha512-VWDCbrLeVXJM9fihYodcLiIv0ku+AlOa/TQ1SvYOaBuyrSKgEcro95LJyIsJ4vSo6BXIxOKxiJAat04CmST9Fw==}
-
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -4360,9 +4350,6 @@ packages:
     resolution: {integrity: sha512-itdFlanxO0nmQv4ORsvA9K1wv40IPfB9OmWqfaJWvoJ30VKyHsqNgDVeG+TVhI7Gk7XW8slUy7cA9r6dF5qohw==}
     engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
-
-  pako@2.1.0:
-    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -7249,8 +7236,6 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
-  '@types/pako@2.0.4': {}
-
   '@types/react-dom@19.2.3(@types/react@19.2.7)':
     dependencies:
       '@types/react': 19.2.7
@@ -9517,8 +9502,6 @@ snapshots:
       tar: 7.5.2
     transitivePeerDependencies:
       - supports-color
-
-  pako@2.1.0: {}
 
   parent-module@1.0.1:
     dependencies:
