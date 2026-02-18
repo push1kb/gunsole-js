@@ -9,11 +9,20 @@
 export { createGunsoleClient } from "./factory";
 export { GunsoleClient } from "./client";
 export type {
+  BucketLogOptions,
+  BucketLogger,
+  ReservedBucketName,
+  ValidateBuckets,
+  WithBuckets,
+} from "./buckets";
+export type {
+  ClientMode,
   GunsoleClientConfig,
   LogEntry,
   LogLevel,
   LogOptions,
+  ReservedTagKey,
   TagEntry,
   UserInfo,
-  ClientMode,
+  ValidTagSchema,
 } from "./types";

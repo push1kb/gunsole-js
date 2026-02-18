@@ -6,6 +6,7 @@ import type {
   LogLevel,
   LogOptions,
   UserInfo,
+  ValidTagSchema,
 } from "./types";
 
 /**
@@ -23,7 +24,10 @@ interface GlobalErrorHandlers {
  * Gunsole client for sending logs and events
  */
 export class GunsoleClient<
-  Tags extends Record<string, string> = Record<string, string>,
+  Tags extends Record<string, string> & ValidTagSchema = Record<
+    string,
+    string
+  >,
 > {
   private config: ReturnType<typeof normalizeConfig>;
   private transport: Transport;

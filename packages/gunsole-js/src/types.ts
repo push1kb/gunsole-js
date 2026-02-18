@@ -20,6 +20,27 @@ export type ClientMode = "desktop" | "local" | "cloud";
 export type TagEntry<T> = { [K in keyof T]: Pick<T, K> }[keyof T];
 
 /**
+ * Tag keys reserved by internal log entry fields.
+ * Using these as tag keys would shadow internal metadata.
+ */
+export type ReservedTagKey =
+  | "bucket"
+  | "message"
+  | "level"
+  | "timestamp"
+  | "userId"
+  | "sessionId"
+  | "env"
+  | "appName"
+  | "appVersion";
+
+/**
+ * Constrains a tag schema to exclude reserved internal field names.
+ * Each reserved key must be `never` (i.e. absent) in a valid tag type.
+ */
+export type ValidTagSchema = { [K in ReservedTagKey]?: never };
+
+/**
  * Options for logging methods (log, info, debug, warn, error)
  */
 export interface LogOptions<
@@ -97,6 +118,8 @@ export interface GunsoleClientConfig {
   fetch?: FetchFunction;
   /** Debug mode - when true, disables gzip compression for readable network payloads */
   isDebug?: boolean;
+  /** Typed bucket names for bucket accessor methods */
+  buckets?: readonly string[];
 }
 
 /**

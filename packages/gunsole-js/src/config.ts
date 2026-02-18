@@ -60,5 +60,6 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
     fetch: config.fetch,
     isDebug: config.isDebug ?? false,
+    buckets: config.buckets ?? [],
   };
 }
