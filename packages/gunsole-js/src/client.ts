@@ -37,50 +37,20 @@ export class GunsoleClient {
       this.config.endpoint,
       this.config.apiKey,
       this.config.projectId,
-      this.config.fetch
+      this.config.fetch,
+      config.isDebug ?? false
     );
     this.startFlushTimer();
   }
 
   /**
-   * Log an info-level message
+   * Log a message. Defaults to info level.
    */
-  log(options: LogOptions): void {
-    this.logEntry("info", options);
-  }
-
-  /**
-   * Log an info-level message
-   */
-  info(options: LogOptions): void {
-    this.logEntry("info", options);
-  }
-
-  /**
-   * Log a debug-level message
-   */
-  debug(options: LogOptions): void {
-    this.logEntry("debug", options);
-  }
-
-  /**
-   * Log a warn-level message
-   */
-  warn(options: LogOptions): void {
-    this.logEntry("warn", options);
-  }
-
-  /**
-   * Log an error-level message
-   */
-  error(options: LogOptions): void {
-    this.logEntry("error", options);
-  }
-
-  /**
-   * Internal method to log an entry
-   */
-  private logEntry(level: LogLevel, options: LogOptions): void {
+  log(options: LogOptions): void;
+  log(level: LogLevel, options: LogOptions): void;
+  log(levelOrOptions: LogLevel | LogOptions, maybeOptions?: LogOptions): void {
+    const level: LogLevel = typeof levelOrOptions === "string" ? levelOrOptions : "info";
+    const options: LogOptions = typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
     try {
       const internalEntry: InternalLogEntry = {
         level,
@@ -109,9 +79,28 @@ export class GunsoleClient {
     } catch (error) {
       // Silently swallow errors - never crash the host app
       if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in logEntry():", error);
+        console.warn("[Gunsole] Error in log():", error);
       }
     }
+  }
+
+  /**
+   * Log an info-level message
+   */
+  info(options: LogOptions): void {
+    this.log("info", options);
+  }
+
+  debug(options: LogOptions): void {
+    this.log("debug", options);
+  }
+
+  warn(options: LogOptions): void {
+    this.log("warn", options);
+  }
+
+  error(options: LogOptions): void {
+    this.log("error", options);
   }
 
   /**
