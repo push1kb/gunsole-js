@@ -90,6 +90,8 @@ export interface GunsoleClientConfig {
   flushInterval?: number;
   /** Custom fetch implementation (default: uses global fetch or throws error) */
   fetch?: FetchFunction;
+  /** Debug mode - when true, disables gzip compression for readable network payloads */
+  isDebug?: boolean;
 }
 
 /**

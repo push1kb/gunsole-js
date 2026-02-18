@@ -1,5 +1,6 @@
 import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types.js";
 import { getFetch } from "./utils/env.js";
+import * as pako from "pako";
 
 /**
  * Maximum number of retry attempts
@@ -26,6 +27,22 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Minify and optionally compress payload
+ */
+function compressPayload(payload: BatchPayload, isDebug: boolean): string | Uint8Array {
+  // Minify JSON (remove whitespace)
+  const minified = JSON.stringify(payload);
+
+  // In debug mode, skip compression for readable payloads
+  if (isDebug) {
+    return minified;
+  }
+
+  // Compress with gzip
+  return pako.gzip(minified);
+}
+
+/**
  * Transport layer for sending logs to the Gunsole API
  */
 export class Transport {
@@ -33,17 +50,20 @@ export class Transport {
   private apiKey: string;
   private projectId: string;
   private fetch: FetchFunction;
+  private isDebug: boolean;
 
   constructor(
     endpoint: string,
     apiKey: string,
     projectId: string,
-    fetch?: FetchFunction
+    fetch?: FetchFunction,
+    isDebug: boolean = false
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
     this.projectId = projectId;
     this.fetch = fetch ?? getFetch();
+    this.isDebug = isDebug;
   }
 
   /**
@@ -64,13 +84,21 @@ export class Transport {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
+        const body = compressPayload(payload, this.isDebug);
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+        };
+
+        // Only set Content-Encoding if not in debug mode
+        if (!this.isDebug) {
+          headers["Content-Encoding"] = "gzip";
+        }
+
         const response = await this.fetch(`${this.endpoint}/logs`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify(payload),
+          headers,
+          body,
         });
 
         if (response.ok) {
