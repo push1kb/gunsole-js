@@ -4,10 +4,10 @@
   "private": true,
   "description": "Gunsole JavaScript SDK monorepo",
   "license": "MIT",
-  "author": "vijaypushkin",
+  "author": "push1kb",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vijaypushkin/gunsole-js.git"
+    "url": "https://github.com/push1kb/gunsole-js.git"
   },
   "scripts": {
     "build": "pnpm -r build",

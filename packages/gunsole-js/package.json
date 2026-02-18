@@ -27,11 +27,11 @@
     "check:fix": "biome check --write ."
   },
   "keywords": ["gunsole", "logging", "analytics", "developer-tools"],
-  "author": "vijaypushkin",
+  "author": "push1kb",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vijaypushkin/gunsole-js.git",
+    "url": "https://github.com/push1kb/gunsole-js.git",
     "directory": "packages/gunsole-js"
   },
   "devDependencies": {
