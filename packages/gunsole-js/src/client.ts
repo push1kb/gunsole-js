@@ -22,7 +22,7 @@ interface GlobalErrorHandlers {
 /**
  * Gunsole client for sending logs and events
  */
-export class GunsoleClient {
+export class GunsoleClient<Tags extends Record<string, string> = Record<string, string>> {
   private config: ReturnType<typeof normalizeConfig>;
   private transport: Transport;
   private batch: InternalLogEntry[] = [];
@@ -46,11 +46,11 @@ export class GunsoleClient {
   /**
    * Log a message. Defaults to info level.
    */
-  log(options: LogOptions): void;
-  log(level: LogLevel, options: LogOptions): void;
-  log(levelOrOptions: LogLevel | LogOptions, maybeOptions?: LogOptions): void {
+  log(options: LogOptions<Tags>): void;
+  log(level: LogLevel, options: LogOptions<Tags>): void;
+  log(levelOrOptions: LogLevel | LogOptions<Tags>, maybeOptions?: LogOptions<Tags>): void {
     const level: LogLevel = typeof levelOrOptions === "string" ? levelOrOptions : "info";
-    const options: LogOptions = typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
+    const options: LogOptions<Tags> = typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
     try {
       const internalEntry: InternalLogEntry = {
         level,
@@ -66,7 +66,9 @@ export class GunsoleClient {
         appVersion: this.config.appVersion || undefined,
         tags: {
           ...this.config.defaultTags,
-          ...options.tags,
+          ...(Array.isArray(options.tags)
+            ? Object.assign({}, ...options.tags)
+            : options.tags),
         },
       };
 
@@ -87,19 +89,19 @@ export class GunsoleClient {
   /**
    * Log an info-level message
    */
-  info(options: LogOptions): void {
+  info(options: LogOptions<Tags>): void {
     this.log("info", options);
   }
 
-  debug(options: LogOptions): void {
+  debug(options: LogOptions<Tags>): void {
     this.log("debug", options);
   }
 
-  warn(options: LogOptions): void {
+  warn(options: LogOptions<Tags>): void {
     this.log("warn", options);
   }
 
-  error(options: LogOptions): void {
+  error(options: LogOptions<Tags>): void {
     this.log("error", options);
   }
 

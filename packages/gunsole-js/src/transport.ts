@@ -98,7 +98,7 @@ export class Transport {
         const response = await this.fetch(`${this.endpoint}/logs`, {
           method: "POST",
           headers,
-          body,
+          body: body as BodyInit,
         });
 
         if (response.ok) {

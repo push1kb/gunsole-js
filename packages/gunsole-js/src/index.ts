@@ -13,6 +13,7 @@ export type {
   LogEntry,
   LogLevel,
   LogOptions,
+  TagEntry,
   UserInfo,
   ClientMode,
 } from "./types";

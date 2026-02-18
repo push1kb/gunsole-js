@@ -16,10 +16,14 @@ export type LogLevel = "info" | "debug" | "warn" | "error";
  */
 export type ClientMode = "desktop" | "local" | "cloud";
 
+
+/** Single-key tag entry derived from a tag schema */
+export type TagEntry<T> = { [K in keyof T]: Pick<T, K> }[keyof T];
+
 /**
  * Options for logging methods (log, info, debug, warn, error)
  */
-export interface LogOptions {
+export interface LogOptions<Tags extends Record<string, string> = Record<string, string>> {
   /** Human-readable message */
   message: string;
   /** Bucket/category for the log */
@@ -27,7 +31,7 @@ export interface LogOptions {
   /** Additional context data */
   context?: Record<string, unknown>;
   /** Tags for filtering/grouping */
-  tags?: Record<string, string>;
+  tags?: Partial<Tags> | TagEntry<Tags>[];
   /** Trace ID for distributed tracing */
   traceId?: string;
 }

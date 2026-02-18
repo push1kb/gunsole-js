@@ -21,8 +21,8 @@ import type { GunsoleClientConfig } from "./types";
  * });
  * ```
  */
-export function createGunsoleClient(
+export function createGunsoleClient<Tags extends Record<string, string> = Record<string, string>>(
   config: GunsoleClientConfig
-): GunsoleClient {
-  return new GunsoleClient(config);
+): GunsoleClient<Tags> {
+  return new GunsoleClient<Tags>(config);
 }
