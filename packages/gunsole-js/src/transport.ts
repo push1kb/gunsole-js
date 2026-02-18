@@ -97,8 +97,11 @@ export class Transport {
         const body = await compressPayload(payload, this.isDebug);
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
         };
+
+        if (this.apiKey) {
+          headers["Authorization"] = `Bearer ${this.apiKey}`;
+        }
 
         // Only set Content-Encoding if not in debug mode
         if (!this.isDebug) {

@@ -43,13 +43,9 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
   if (!config.projectId) {
     throw new Error("projectId is required");
   }
-  if (!config.apiKey) {
-    throw new Error("apiKey is required");
-  }
-
   return {
     projectId: config.projectId,
-    apiKey: config.apiKey,
+    apiKey: config.apiKey ?? "",
     mode: config.mode,
     endpoint: resolveEndpoint(config.mode, config.endpoint),
     env: config.env ?? "",

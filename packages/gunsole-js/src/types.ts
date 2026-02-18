@@ -96,8 +96,8 @@ export interface UserInfo {
 export interface GunsoleClientConfig {
   /** Project identifier */
   projectId: string;
-  /** API key (public or secret) */
-  apiKey: string;
+  /** API key (public or secret). Required for cloud mode. */
+  apiKey?: string;
   /** Client mode (desktop/local/cloud) */
   mode: ClientMode;
   /** Custom endpoint URL (overrides mode default) */
