@@ -17,6 +17,7 @@ export type {
 } from "./buckets";
 export type {
   ClientMode,
+  FetchFunction,
   GunsoleClientConfig,
   LogEntry,
   LogLevel,

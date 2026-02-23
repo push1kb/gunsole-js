@@ -114,6 +114,19 @@ await gunsole.flush();
 - `batchSize` (optional): Number of logs to batch before sending (default: 10)
 - `flushInterval` (optional): Auto-flush interval in ms (default: 5000)
 
+### Cleanup
+
+```typescript
+// Flush remaining logs and release resources
+await gunsole.destroy();
+```
+
+> **Node.js note:** The `attachGlobalErrorHandlers()` method registers an `uncaughtException` listener. Be aware that in Node.js, uncaught exceptions leave the process in an undefined state. The SDK captures the error for logging but does not re-throw or exit — you may want to add your own handler that calls `process.exit(1)` after flushing.
+
+## API Reference
+
+See [SDK Reference](../../docs/sdk-reference.md) for full API documentation including typed buckets, tag schemas, and all configuration options.
+
 ## Features
 
 - ✅ Browser and Node.js support

@@ -28,6 +28,9 @@
     "prepublishOnly": "pnpm build && pnpm typecheck"
   },
   "keywords": ["gunsole", "logging", "analytics", "developer-tools"],
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "push1kb",
   "license": "MIT",
   "repository": {

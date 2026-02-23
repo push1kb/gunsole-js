@@ -3,19 +3,47 @@
  */
 
 import type { GunsoleClient } from "../src/client.js";
-import type { LogEntry, UserInfo } from "../src/types.js";
+import type { LogLevel, LogOptions, UserInfo } from "../src/types.js";
+
+interface MockLogEntry {
+  level: LogLevel;
+  options: LogOptions;
+}
 
 /**
  * Create a mock Gunsole client for testing
  */
-export function createMockGunsoleClient(): GunsoleClient {
-  const logs: LogEntry[] = [];
+export function createMockGunsoleClient(): GunsoleClient & {
+  _getLogs: () => MockLogEntry[];
+  _getUser: () => UserInfo | null;
+  _getSessionId: () => string | null;
+} {
+  const logs: MockLogEntry[] = [];
   let user: UserInfo | null = null;
   let sessionId: string | null = null;
 
   return {
-    log: (entry: LogEntry) => {
-      logs.push(entry);
+    log(
+      levelOrOptions: LogLevel | LogOptions,
+      maybeOptions?: LogOptions
+    ) {
+      const level: LogLevel =
+        typeof levelOrOptions === "string" ? levelOrOptions : "info";
+      const options: LogOptions =
+        typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
+      logs.push({ level, options });
+    },
+    info: (options: LogOptions) => {
+      logs.push({ level: "info", options });
+    },
+    debug: (options: LogOptions) => {
+      logs.push({ level: "debug", options });
+    },
+    warn: (options: LogOptions) => {
+      logs.push({ level: "warn", options });
+    },
+    error: (options: LogOptions) => {
+      logs.push({ level: "error", options });
     },
     setUser: (userInfo: UserInfo) => {
       user = userInfo;
@@ -23,24 +51,15 @@ export function createMockGunsoleClient(): GunsoleClient {
     setSessionId: (id: string) => {
       sessionId = id;
     },
-    flush: async () => {
-      // Mock flush - does nothing
-    },
-    attachGlobalErrorHandlers: () => {
-      // Mock - does nothing
-    },
-    detachGlobalErrorHandlers: () => {
-      // Mock - does nothing
-    },
-    destroy: () => {
-      // Mock cleanup
-    },
-    // Expose internal state for testing
+    flush: async () => {},
+    attachGlobalErrorHandlers: () => {},
+    detachGlobalErrorHandlers: () => {},
+    destroy: async () => {},
     _getLogs: () => logs,
     _getUser: () => user,
     _getSessionId: () => sessionId,
   } as GunsoleClient & {
-    _getLogs: () => LogEntry[];
+    _getLogs: () => MockLogEntry[];
     _getUser: () => UserInfo | null;
     _getSessionId: () => string | null;
   };
