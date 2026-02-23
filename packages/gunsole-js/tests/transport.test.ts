@@ -28,7 +28,7 @@ describe("Transport", () => {
         level: "info",
         bucket: "test",
         message: "Test log",
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
       },
     ];
 
@@ -63,7 +63,7 @@ describe("Transport", () => {
         level: "info",
         bucket: "test",
         message: "Test log",
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
       },
     ];
 
@@ -77,9 +77,9 @@ describe("Transport", () => {
     expect(duration).toBeGreaterThanOrEqual(2000);
   });
 
-  it("should handle HTTP error responses", async () => {
+  it("should not retry on 4xx client errors", async () => {
     const mockFetch = vi.mocked(global.fetch);
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 400,
       statusText: "Bad Request",
@@ -91,15 +91,70 @@ describe("Transport", () => {
         level: "info",
         bucket: "test",
         message: "Test log",
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
       },
     ];
 
-    // Should not throw, but retry
     await transport.sendBatch(logs);
 
-    // Should have attempted retries
-    expect(mockFetch).toHaveBeenCalled();
+    // 4xx should not be retried — only 1 attempt
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should retry on 429 rate limit", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        statusText: "Too Many Requests",
+        text: async () => "Rate limited",
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      } as Response);
+
+    const logs: InternalLogEntry[] = [
+      {
+        level: "info",
+        bucket: "test",
+        message: "Test log",
+        timestamp: Date.now(),
+      },
+    ];
+
+    await transport.sendBatch(logs);
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("should retry on 5xx server errors", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        text: async () => "Server error",
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      } as Response);
+
+    const logs: InternalLogEntry[] = [
+      {
+        level: "info",
+        bucket: "test",
+        message: "Test log",
+        timestamp: Date.now(),
+      },
+    ];
+
+    await transport.sendBatch(logs);
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
   it("should not send empty batches", async () => {
@@ -119,7 +174,7 @@ describe("Transport", () => {
         level: "info",
         bucket: "test",
         message: "Test log",
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
       },
     ];
 

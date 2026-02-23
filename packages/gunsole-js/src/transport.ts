@@ -121,6 +121,11 @@ export class Transport {
         // Non-2xx response
         const errorText = await response.text().catch(() => "Unknown error");
         lastError = new Error(`HTTP ${response.status}: ${errorText}`);
+
+        // Don't retry client errors (4xx) except 429 (rate limited)
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          break;
+        }
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
       }

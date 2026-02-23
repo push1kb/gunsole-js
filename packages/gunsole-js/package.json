@@ -13,7 +13,7 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "LICENSE", "README.md"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -24,7 +24,8 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
     "check": "biome check .",
-    "check:fix": "biome check --write ."
+    "check:fix": "biome check --write .",
+    "prepublishOnly": "pnpm build && pnpm typecheck"
   },
   "keywords": ["gunsole", "logging", "analytics", "developer-tools"],
   "author": "push1kb",
@@ -42,6 +43,11 @@
     "vitest": "^1.2.1"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.4.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }

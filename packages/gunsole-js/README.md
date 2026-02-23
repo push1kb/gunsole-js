@@ -99,12 +99,12 @@ await gunsole.flush();
 
 - `cloud`: Sends logs to `https://api.gunsole.com` (default for SaaS)
 - `desktop`: Sends logs to `http://localhost:8787` (Gunsole Desktop app)
-- `local`: Sends logs to `http://localhost:8787` (local development)
+- `local`: Sends logs to `http://localhost:17655` (local development)
 
 ### Options
 
 - `projectId` (required): Your Gunsole project identifier
-- `apiKey` (required): Your API key (public or secret)
+- `apiKey` (optional): Your API key (required for cloud mode)
 - `mode` (required): Client mode (`"desktop" | "local" | "cloud"`)
 - `endpoint` (optional): Custom endpoint URL (overrides mode default)
 - `env` (optional): Environment name (e.g., "production", "staging")

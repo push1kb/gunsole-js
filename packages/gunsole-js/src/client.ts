@@ -337,11 +337,11 @@ export class GunsoleClient<
   }
 
   /**
-   * Cleanup resources
+   * Cleanup resources. Awaiting ensures remaining logs are flushed.
    */
-  destroy(): void {
+  async destroy(): Promise<void> {
     this.stopFlushTimer();
     this.detachGlobalErrorHandlers();
-    this.flush();
+    await this.flush();
   }
 }

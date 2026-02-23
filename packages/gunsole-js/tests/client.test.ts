@@ -289,3 +289,69 @@ describe("Bucket methods", () => {
     client.destroy();
   });
 });
+
+describe("Global error handlers", () => {
+  let config: GunsoleClientConfig;
+
+  beforeEach(() => {
+    config = {
+      projectId: "test-project",
+      apiKey: "test-api-key",
+      mode: "cloud",
+      isDebug: true,
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should attach and detach Node.js process handlers", () => {
+    const client = createGunsoleClient(config);
+    const listenersBefore = process.listenerCount("uncaughtException");
+
+    client.attachGlobalErrorHandlers();
+    expect(process.listenerCount("uncaughtException")).toBe(
+      listenersBefore + 1
+    );
+    expect(process.listenerCount("unhandledRejection")).toBeGreaterThan(0);
+
+    client.detachGlobalErrorHandlers();
+    expect(process.listenerCount("uncaughtException")).toBe(listenersBefore);
+
+    client.destroy();
+  });
+
+  it("should not attach handlers twice", () => {
+    const client = createGunsoleClient(config);
+    const listenersBefore = process.listenerCount("uncaughtException");
+
+    client.attachGlobalErrorHandlers();
+    client.attachGlobalErrorHandlers(); // second call should be a no-op
+
+    expect(process.listenerCount("uncaughtException")).toBe(
+      listenersBefore + 1
+    );
+
+    client.detachGlobalErrorHandlers();
+    client.destroy();
+  });
+
+  it("should detach handlers on destroy", () => {
+    const client = createGunsoleClient(config);
+    const listenersBefore = process.listenerCount("uncaughtException");
+
+    client.attachGlobalErrorHandlers();
+    expect(process.listenerCount("uncaughtException")).toBe(
+      listenersBefore + 1
+    );
+
+    client.destroy();
+    expect(process.listenerCount("uncaughtException")).toBe(listenersBefore);
+  });
+
+  it("should be safe to detach without attaching first", () => {
+    const client = createGunsoleClient(config);
+
+    expect(() => client.detachGlobalErrorHandlers()).not.toThrow();
+
+    client.destroy();
+  });
+});
