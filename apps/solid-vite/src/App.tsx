@@ -254,7 +254,9 @@ function App() {
                     </p>
                     <p>
                       <span class="font-medium text-white">Types:</span>{" "}
-                      {p().types.map((t) => t.type.name).join(", ")}
+                      {p()
+                        .types.map((t) => t.type.name)
+                        .join(", ")}
                     </p>
                   </div>
                 </div>
