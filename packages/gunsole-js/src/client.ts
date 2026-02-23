@@ -36,9 +36,11 @@ export class GunsoleClient<
   private user: UserInfo | null = null;
   private sessionId: string | null = null;
   private globalHandlers: GlobalErrorHandlers = { attached: false };
+  private readonly disabled: boolean;
 
   constructor(config: GunsoleClientConfig) {
     this.config = normalizeConfig(config);
+    this.disabled = config.isDisabled ?? false;
     this.transport = new Transport(
       this.config.endpoint,
       this.config.apiKey,
@@ -46,6 +48,11 @@ export class GunsoleClient<
       this.config.fetch,
       config.isDebug ?? false
     );
+
+    if (this.disabled) {
+      return;
+    }
+
     this.startFlushTimer();
   }
 
@@ -58,6 +65,9 @@ export class GunsoleClient<
     levelOrOptions: LogLevel | LogOptions<Tags>,
     maybeOptions?: LogOptions<Tags>
   ): void {
+    if (this.disabled) {
+      return;
+    }
     const level: LogLevel =
       typeof levelOrOptions === "string" ? levelOrOptions : "info";
     const options: LogOptions<Tags> =
@@ -120,6 +130,9 @@ export class GunsoleClient<
    * Set user information
    */
   setUser(user: UserInfo): void {
+    if (this.disabled) {
+      return;
+    }
     try {
       this.user = user;
     } catch (error) {
@@ -133,6 +146,9 @@ export class GunsoleClient<
    * Set session ID
    */
   setSessionId(sessionId: string): void {
+    if (this.disabled) {
+      return;
+    }
     try {
       this.sessionId = sessionId;
     } catch (error) {
@@ -146,6 +162,9 @@ export class GunsoleClient<
    * Flush pending logs to the API
    */
   async flush(): Promise<void> {
+    if (this.disabled) {
+      return;
+    }
     try {
       if (this.batch.length === 0) {
         return;
@@ -167,6 +186,9 @@ export class GunsoleClient<
    * Attach global error handlers
    */
   attachGlobalErrorHandlers(): void {
+    if (this.disabled) {
+      return;
+    }
     try {
       if (this.globalHandlers.attached) {
         return;

@@ -118,6 +118,8 @@ export interface GunsoleClientConfig {
   fetch?: FetchFunction;
   /** Debug mode - when true, disables gzip compression for readable network payloads */
   isDebug?: boolean;
+  /** When true, all SDK methods become no-ops. Useful for disabling in specific environments. */
+  isDisabled?: boolean;
   /** Typed bucket names for bucket accessor methods */
   buckets?: readonly string[];
 }

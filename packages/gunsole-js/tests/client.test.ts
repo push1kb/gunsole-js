@@ -290,6 +290,79 @@ describe("Bucket methods", () => {
   });
 });
 
+describe("isDisabled", () => {
+  let config: GunsoleClientConfig;
+
+  beforeEach(() => {
+    config = {
+      projectId: "test-project",
+      apiKey: "test-api-key",
+      mode: "cloud",
+      isDebug: true,
+      isDisabled: true,
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should not send any logs when disabled", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    const client = createGunsoleClient(config);
+
+    client.log({ message: "Test", bucket: "test" });
+    client.info({ message: "Test", bucket: "test" });
+    client.debug({ message: "Test", bucket: "test" });
+    client.warn({ message: "Test", bucket: "test" });
+    client.error({ message: "Test", bucket: "test" });
+
+    await client.flush();
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    await client.destroy();
+  });
+
+  it("should not attach global error handlers when disabled", () => {
+    const client = createGunsoleClient(config);
+    const listenersBefore = process.listenerCount("uncaughtException");
+
+    client.attachGlobalErrorHandlers();
+
+    expect(process.listenerCount("uncaughtException")).toBe(listenersBefore);
+    client.destroy();
+  });
+
+  it("should safely call setUser and setSessionId when disabled", () => {
+    const client = createGunsoleClient(config);
+
+    expect(() => {
+      client.setUser({ id: "user-1" });
+      client.setSessionId("session-1");
+    }).not.toThrow();
+
+    client.destroy();
+  });
+
+  it("should safely call destroy when disabled", async () => {
+    const client = createGunsoleClient(config);
+    await expect(client.destroy()).resolves.toBeUndefined();
+  });
+
+  it("should noop bucket accessors when disabled", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    const client = createGunsoleClient({
+      ...config,
+      buckets: ["payment", "auth"],
+    });
+
+    client.payment("User paid");
+    client.auth.error("Login failed");
+
+    await client.flush();
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    await client.destroy();
+  });
+});
+
 describe("Global error handlers", () => {
   let config: GunsoleClientConfig;
 
