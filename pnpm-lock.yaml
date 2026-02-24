@@ -37,7 +37,7 @@ importers:
         version: 21.0.3(@angular/common@21.0.3(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(@angular/platform-browser@21.0.3(@angular/common@21.0.3(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2)))(rxjs@7.8.2)
       '@gunsole/core':
         specifier: workspace:*
-        version: link:../../packages/gunsole-js
+        version: link:../../packages/core
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -68,7 +68,7 @@ importers:
     dependencies:
       '@gunsole/core':
         specifier: workspace:*
-        version: link:../../packages/gunsole-js
+        version: link:../../packages/core
     devDependencies:
       tsx:
         specifier: ^4.7.0
@@ -81,7 +81,7 @@ importers:
     dependencies:
       '@gunsole/core':
         specifier: workspace:*
-        version: link:../../packages/gunsole-js
+        version: link:../../packages/core
       next:
         specifier: 16.0.7
         version: 16.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.93.2)
@@ -121,7 +121,7 @@ importers:
     dependencies:
       '@gunsole/core':
         specifier: workspace:*
-        version: link:../../packages/gunsole-js
+        version: link:../../packages/core
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -179,7 +179,7 @@ importers:
     dependencies:
       '@gunsole/core':
         specifier: workspace:*
-        version: link:../../packages/gunsole-js
+        version: link:../../packages/core
       solid-js:
         specifier: ^1.9.10
         version: 1.9.10
@@ -206,7 +206,7 @@ importers:
         specifier: ^2.11.10
         version: 2.11.10(solid-js@1.9.10)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.93.2)(tsx@4.21.0))
 
-  packages/gunsole-js:
+  packages/core:
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4

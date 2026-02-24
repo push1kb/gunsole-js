@@ -41,7 +41,7 @@ cd apps/log-blaster && pnpm start    # Node.js CLI stress-test tool
 
 ## Architecture
 
-### Core Components (packages/gunsole-js/src/)
+### Core Components (packages/core/src/)
 
 - **client.ts** - `GunsoleClient<Tags>` class: main API for logging (`log()`, `info()`, `debug()`, `warn()`, `error()`), user/session tracking, log batching, global error handler, `destroy()` lifecycle method
 - **transport.ts** - HTTP layer with retry logic (exponential backoff, max 3 retries), gzip compression via native Compression Streams API (disabled when `isDebug: true`)
@@ -72,7 +72,7 @@ Note: `InternalLogEntry` and `BatchPayload` are internal only (not exported).
 ## Monorepo Structure
 
 ```
-packages/gunsole-js/     # Main SDK (zero runtime dependencies)
+packages/core/     # Main SDK (zero runtime dependencies)
 apps/react-vite/         # React + Vite test app
 apps/nextjs-app/         # Next.js test app
 apps/solid-vite/         # Solid.js test app
@@ -83,7 +83,7 @@ apps/log-blaster/        # Node.js CLI stress-test (fires 100 logs across 10 buc
 ## Testing
 
 - **Framework**: Vitest with node environment
-- **Location**: `packages/gunsole-js/tests/` (not co-located with source)
+- **Location**: `packages/core/tests/` (not co-located with source)
 - **Coverage**: v8 provider, reporters: text/json/html
 - **Mocks**: `tests/mocks.ts` provides `createMockGunsoleClient()` helper
 - Tests are excluded from tsconfig (`"exclude": ["tests"]`) so they don't need to meet the same strict constraints

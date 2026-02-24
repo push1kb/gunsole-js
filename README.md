@@ -9,7 +9,7 @@ This monorepo contains the Gunsole JavaScript SDK and test applications for vari
 ```
 .
 ├── packages/
-│   └── gunsole-js/          # Main SDK package
+│   └── core/                # Main SDK package (@gunsole/core)
 └── apps/
     ├── react-vite/          # React + Vite test app
     ├── solid-vite/          # Solid + Vite test app
