@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "gunsole-js": "workspace:*",
+    "@gunsole/core": "workspace:*",
     "solid-js": "^1.9.10",
     "web-vitals": "^5.1.0"
   },

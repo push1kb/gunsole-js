@@ -35,7 +35,7 @@ importers:
       '@angular/router':
         specifier: ^21.0.0
         version: 21.0.3(@angular/common@21.0.3(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(@angular/platform-browser@21.0.3(@angular/common@21.0.3(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.0.3(@angular/compiler@21.0.3)(rxjs@7.8.2)))(rxjs@7.8.2)
-      gunsole-js:
+      '@gunsole/core':
         specifier: workspace:*
         version: link:../../packages/gunsole-js
       rxjs:
@@ -66,7 +66,7 @@ importers:
 
   apps/log-blaster:
     dependencies:
-      gunsole-js:
+      '@gunsole/core':
         specifier: workspace:*
         version: link:../../packages/gunsole-js
     devDependencies:
@@ -79,7 +79,7 @@ importers:
 
   apps/nextjs-app:
     dependencies:
-      gunsole-js:
+      '@gunsole/core':
         specifier: workspace:*
         version: link:../../packages/gunsole-js
       next:
@@ -119,7 +119,7 @@ importers:
 
   apps/react-vite:
     dependencies:
-      gunsole-js:
+      '@gunsole/core':
         specifier: workspace:*
         version: link:../../packages/gunsole-js
       react:
@@ -177,7 +177,7 @@ importers:
 
   apps/solid-vite:
     dependencies:
-      gunsole-js:
+      '@gunsole/core':
         specifier: workspace:*
         version: link:../../packages/gunsole-js
       solid-js:

@@ -26,10 +26,10 @@ pnpm check:fix         # Fix all issues
 pnpm typecheck
 
 # SDK-specific commands
-pnpm --filter gunsole-js test            # Test SDK only
-pnpm --filter gunsole-js test:watch      # Tests in watch mode
-pnpm --filter gunsole-js test --coverage # Tests with v8 coverage
-pnpm --filter gunsole-js dev             # Build SDK in watch mode
+pnpm --filter @gunsole/core test            # Test SDK only
+pnpm --filter @gunsole/core test:watch      # Tests in watch mode
+pnpm --filter @gunsole/core test --coverage # Tests with v8 coverage
+pnpm --filter @gunsole/core dev             # Build SDK in watch mode
 
 # Run test apps
 cd apps/react-vite && pnpm dev       # React + Vite

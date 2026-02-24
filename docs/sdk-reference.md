@@ -3,11 +3,11 @@
 ## Installation
 
 ```bash
-npm install gunsole-js
+npm install @gunsole/core
 # or
-pnpm add gunsole-js
+pnpm add @gunsole/core
 # or
-yarn add gunsole-js
+yarn add @gunsole/core
 ```
 
 Requires Node.js >= 18. Zero runtime dependencies.
@@ -15,7 +15,7 @@ Requires Node.js >= 18. Zero runtime dependencies.
 ## Quick Start
 
 ```ts
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 
 const gunsole = createGunsoleClient({
   projectId: "my-project",

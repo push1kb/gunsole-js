@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "gunsole-js": "workspace:*",
+    "@gunsole/core": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "web-vitals": "^5.1.0"

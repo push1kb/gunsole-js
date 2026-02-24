@@ -31,7 +31,7 @@ pnpm install
 pnpm build
 ```
 
-This builds the `gunsole-js` package which is then used by all test apps via the workspace protocol.
+This builds the `@gunsole/core` package which is then used by all test apps via the workspace protocol.
 
 ## Test Applications
 
@@ -89,13 +89,13 @@ Each test app includes:
 ### Build SDK
 
 ```bash
-pnpm --filter gunsole-js build
+pnpm --filter @gunsole/core build
 ```
 
 ### Run Tests
 
 ```bash
-pnpm --filter gunsole-js test
+pnpm --filter @gunsole/core test
 ```
 
 ### Lint and Format

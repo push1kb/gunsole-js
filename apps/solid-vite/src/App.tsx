@@ -1,4 +1,4 @@
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 import { createSignal, onCleanup, onMount, Show, For } from "solid-js";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 

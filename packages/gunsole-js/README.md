@@ -1,15 +1,15 @@
-# gunsole-js
+# @gunsole/core
 
 Gunsole JavaScript/TypeScript SDK for browser and Node.js environments.
 
 ## Installation
 
 ```bash
-pnpm add gunsole-js
+pnpm add @gunsole/core
 # or
-npm install gunsole-js
+npm install @gunsole/core
 # or
-yarn add gunsole-js
+yarn add @gunsole/core
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ yarn add gunsole-js
 ### Basic Setup
 
 ```typescript
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 
 const gunsole = createGunsoleClient({
   projectId: "your-project-id",

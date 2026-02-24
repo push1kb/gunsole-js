@@ -1,7 +1,7 @@
-import { Component, effect, type onDestroy, signal } from "@angular/core";
+import { Component, effect, type OnDestroy, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { RouterOutlet } from "@angular/router";
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 
 const gunsole = createGunsoleClient({
   projectId: "test-project-angular",
@@ -19,7 +19,7 @@ const gunsole = createGunsoleClient({
   templateUrl: "./app.html",
   styleUrl: "./app.css",
 })
-export class App implements onDestroy {
+export class App implements OnDestroy {
   protected readonly count = signal(0);
   protected readonly userId = signal("user-123");
   protected readonly sessionId = signal("session-abc");

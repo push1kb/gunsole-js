@@ -1,4 +1,4 @@
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 import { useCallback, useEffect, useState } from "react";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 

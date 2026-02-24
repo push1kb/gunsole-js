@@ -1,4 +1,4 @@
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 
 const debugFetch: typeof fetch = async (input, init) => {
   const url =

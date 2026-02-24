@@ -7,7 +7,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "gunsole-js": "workspace:*"
+    "@gunsole/core": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.7.0",

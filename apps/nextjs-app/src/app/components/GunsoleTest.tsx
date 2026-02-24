@@ -1,6 +1,6 @@
 "use client";
 
-import { createGunsoleClient } from "gunsole-js";
+import { createGunsoleClient } from "@gunsole/core";
 import { useEffect, useState } from "react";
 
 const gunsole = createGunsoleClient({
