@@ -2,8 +2,8 @@
  * Mock implementations for testing
  */
 
-import type { GunsoleClient } from "../src/client.js";
-import type { LogLevel, LogOptions, UserInfo } from "../src/types.js";
+import type { GunsoleClient } from "../src/client";
+import type { LogLevel, LogOptions, UserInfo } from "../src/types";
 
 interface MockLogEntry {
   level: LogLevel;

@@ -1,5 +1,5 @@
-import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types.js";
-import { getFetch } from "./utils/env.js";
+import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types";
+import { getFetch } from "./utils/env";
 
 /**
  * Maximum number of retry attempts
@@ -10,6 +10,11 @@ const MAX_RETRIES = 3;
  * Base delay for exponential backoff (milliseconds)
  */
 const BASE_DELAY_MS = 1000;
+
+/**
+ * Timeout for each fetch request (milliseconds)
+ */
+const REQUEST_TIMEOUT_MS = 30_000;
 
 /**
  * Calculate exponential backoff delay
@@ -37,22 +42,6 @@ async function gzipCompress(input: string): Promise<Uint8Array> {
 }
 
 /**
- * Minify and optionally compress payload
- */
-async function compressPayload(
-  payload: BatchPayload,
-  isDebug: boolean
-): Promise<string | Uint8Array> {
-  const minified = JSON.stringify(payload);
-
-  if (isDebug) {
-    return minified;
-  }
-
-  return gzipCompress(minified);
-}
-
-/**
  * Transport layer for sending logs to the Gunsole API
  */
 export class Transport {
@@ -60,20 +49,17 @@ export class Transport {
   private apiKey: string;
   private projectId: string;
   private fetch: FetchFunction;
-  private isDebug: boolean;
 
   constructor(
     endpoint: string,
     apiKey: string,
     projectId: string,
-    fetch?: FetchFunction,
-    isDebug = false
+    fetch?: FetchFunction
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
     this.projectId = projectId;
     this.fetch = fetch ?? getFetch();
-    this.isDebug = isDebug;
   }
 
   /**
@@ -90,58 +76,62 @@ export class Transport {
       logs,
     };
 
-    let lastError: Error | null = null;
+    let lastError: unknown;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const body = await compressPayload(payload, this.isDebug);
+        const body = await gzipCompress(JSON.stringify(payload));
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
         };
 
         if (this.apiKey) {
           headers["Authorization"] = `Bearer ${this.apiKey}`;
         }
 
-        // Only set Content-Encoding if not in debug mode
-        if (!this.isDebug) {
-          headers["Content-Encoding"] = "gzip";
-        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+          () => controller.abort(),
+          REQUEST_TIMEOUT_MS
+        );
 
-        const response = await this.fetch(`${this.endpoint}/logs`, {
-          method: "POST",
-          headers,
-          body: body as BodyInit,
-        });
+        let response: Response;
+        try {
+          response = await this.fetch(`${this.endpoint}/logs`, {
+            method: "POST",
+            headers,
+            body: body as BodyInit,
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         if (response.ok) {
-          return; // Success
+          return;
         }
-
-        // Non-2xx response
-        const errorText = await response.text().catch(() => "Unknown error");
-        lastError = new Error(`HTTP ${response.status}: ${errorText}`);
 
         // Don't retry client errors (4xx) except 429 (rate limited)
-        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-          break;
+        if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          return;
         }
+
+        lastError = new Error(`HTTP ${response.status}`);
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = error;
       }
 
-      // If not the last attempt, wait before retrying
       if (attempt < MAX_RETRIES - 1) {
         const delay = calculateBackoffDelay(attempt);
         await sleep(delay);
       }
     }
 
-    // All retries failed - silently swallow the error
-    // This ensures the SDK never crashes the host application
-    // In production, you might want to log this to console in debug mode
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[Gunsole] Failed to send logs after retries:", lastError);
-    }
+    throw lastError;
   }
 }

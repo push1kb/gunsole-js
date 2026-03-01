@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createGunsoleClient } from "../src/index.js";
-import type { GunsoleClientConfig, LogLevel } from "../src/types.js";
+import { createGunsoleClient } from "../src/index";
+import type { GunsoleClientConfig, LogLevel } from "../src/types";
+
+async function gunzip(data: Uint8Array): Promise<string> {
+  const stream = new Blob([data])
+    .stream()
+    .pipeThrough(new DecompressionStream("gzip"));
+  return new Response(stream).text();
+}
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -14,7 +21,6 @@ describe("GunsoleClient", () => {
       projectId: "test-project",
       apiKey: "test-api-key",
       mode: "cloud",
-      isDebug: true,
     };
     client = createGunsoleClient(config);
     vi.clearAllMocks();
@@ -84,7 +90,7 @@ describe("GunsoleClient", () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const call = mockFetch.mock.calls[0];
-    const body = JSON.parse(call[1]?.body as string);
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
     expect(body.logs[0].userId).toBe("user-123");
     expect(body.logs[0].sessionId).toBe("session-456");
   });
@@ -110,7 +116,7 @@ describe("GunsoleClient", () => {
     await taggedClient.flush();
 
     const call = mockFetch.mock.calls[0];
-    const body = JSON.parse(call[1]?.body as string);
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
     expect(body.logs[0].tags).toEqual({
       env: "test",
       region: "us-east",
@@ -131,7 +137,7 @@ describe("GunsoleClient", () => {
 
   it("should handle flush errors gracefully", async () => {
     const mockFetch = vi.mocked(global.fetch);
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
+    mockFetch.mockRejectedValue(new Error("Network error"));
 
     client.log({
       message: "Test log",
@@ -140,6 +146,33 @@ describe("GunsoleClient", () => {
 
     // Should not throw
     await expect(client.flush()).resolves.toBeUndefined();
+  });
+
+  it("should re-queue logs when flush fails", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    // First flush: all retries fail
+    mockFetch.mockRejectedValue(new Error("Network error"));
+
+    client.log({
+      message: "Important log",
+      bucket: "test",
+    });
+
+    await client.flush();
+
+    // Logs should be re-queued — a second flush should retry them
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await client.flush();
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
+    expect(body.logs[0].message).toBe("Important log");
   });
 });
 
@@ -151,7 +184,6 @@ describe("Bucket methods", () => {
       projectId: "test-project",
       apiKey: "test-api-key",
       mode: "cloud",
-      isDebug: true,
     };
     vi.clearAllMocks();
   });
@@ -188,7 +220,7 @@ describe("Bucket methods", () => {
     await client.flush();
 
     const call = mockFetch.mock.calls[0];
-    const body = JSON.parse(call[1]?.body as string);
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
     expect(body.logs[0].bucket).toBe("payment");
     expect(body.logs[0].message).toBe("User paid");
     expect(body.logs[0].level).toBe("info");
@@ -217,7 +249,7 @@ describe("Bucket methods", () => {
 
       // biome-ignore lint/style/noNonNullAssertion: test assertion
       const call = mockFetch.mock.calls.at(-1)!;
-      const body = JSON.parse(call[1]?.body as string);
+      const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
       expect(body.logs[0].level).toBe(level);
       expect(body.logs[0].bucket).toBe("auth");
       expect(body.logs[0].message).toBe(`${level} message`);
@@ -246,7 +278,7 @@ describe("Bucket methods", () => {
     await client.flush();
 
     const call = mockFetch.mock.calls[0];
-    const body = JSON.parse(call[1]?.body as string);
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
     expect(body.logs[0].context).toEqual({ orderId: "abc-123" });
     expect(body.logs[0].traceId).toBe("trace-1");
     expect(body.logs[0].tags).toEqual({ region: "us" });
@@ -298,7 +330,6 @@ describe("isDisabled", () => {
       projectId: "test-project",
       apiKey: "test-api-key",
       mode: "cloud",
-      isDebug: true,
       isDisabled: true,
     };
     vi.clearAllMocks();
@@ -371,7 +402,6 @@ describe("Global error handlers", () => {
       projectId: "test-project",
       apiKey: "test-api-key",
       mode: "cloud",
-      isDebug: true,
     };
     vi.clearAllMocks();
   });

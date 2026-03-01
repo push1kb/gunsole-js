@@ -21,6 +21,16 @@ export function isNode(): boolean {
 }
 
 /**
+ * Check if running in a development environment
+ */
+export function isDev(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    process.env?.NODE_ENV === "development"
+  );
+}
+
+/**
  * Get fetch implementation (browser or Node.js)
  * If a custom fetch is provided, it will be used instead.
  */

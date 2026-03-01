@@ -8,6 +8,7 @@ import type {
   UserInfo,
   ValidTagSchema,
 } from "./types";
+import { isDev } from "./utils/env";
 
 /**
  * Global error handler state
@@ -45,8 +46,7 @@ export class GunsoleClient<
       this.config.endpoint,
       this.config.apiKey,
       this.config.projectId,
-      this.config.fetch,
-      config.isDebug ?? false
+      this.config.fetch
     );
 
     if (this.disabled) {
@@ -99,11 +99,8 @@ export class GunsoleClient<
       if (this.batch.length >= this.config.batchSize) {
         this.flush();
       }
-    } catch (error) {
-      // Silently swallow errors - never crash the host app
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in log():", error);
-      }
+    } catch {
+      // Silently swallow — never crash the host app
     }
   }
 
@@ -133,13 +130,7 @@ export class GunsoleClient<
     if (this.disabled) {
       return;
     }
-    try {
-      this.user = user;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in setUser():", error);
-      }
-    }
+    this.user = user;
   }
 
   /**
@@ -149,13 +140,7 @@ export class GunsoleClient<
     if (this.disabled) {
       return;
     }
-    try {
-      this.sessionId = sessionId;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in setSessionId():", error);
-      }
-    }
+    this.sessionId = sessionId;
   }
 
   /**
@@ -165,18 +150,18 @@ export class GunsoleClient<
     if (this.disabled) {
       return;
     }
+    const logsToSend = [...this.batch];
+    if (logsToSend.length === 0) {
+      return;
+    }
+    this.batch = [];
+
     try {
-      if (this.batch.length === 0) {
-        return;
-      }
-
-      const logsToSend = [...this.batch];
-      this.batch = [];
-
       await this.transport.sendBatch(logsToSend);
     } catch (error) {
-      // Silently swallow errors
-      if (process.env.NODE_ENV === "development") {
+      // Re-queue failed logs so they can be retried on next flush
+      this.batch.unshift(...logsToSend);
+      if (isDev()) {
         console.warn("[Gunsole] Error in flush():", error);
       }
     }
@@ -285,7 +270,7 @@ export class GunsoleClient<
 
       this.globalHandlers.attached = true;
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
+      if (isDev()) {
         console.warn("[Gunsole] Error in attachGlobalErrorHandlers():", error);
       }
     }
@@ -329,7 +314,7 @@ export class GunsoleClient<
 
       this.globalHandlers = { attached: false };
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
+      if (isDev()) {
         console.warn("[Gunsole] Error in detachGlobalErrorHandlers():", error);
       }
     }
