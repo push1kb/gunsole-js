@@ -25,10 +25,7 @@ interface GlobalErrorHandlers {
  * Gunsole client for sending logs and events
  */
 export class GunsoleClient<
-  Tags extends Record<string, string> & ValidTagSchema = Record<
-    string,
-    string
-  >,
+  Tags extends Record<string, string> & ValidTagSchema = Record<string, string>,
 > {
   private config: ReturnType<typeof normalizeConfig>;
   private transport: Transport;
@@ -38,6 +35,7 @@ export class GunsoleClient<
   private sessionId: string | null = null;
   private globalHandlers: GlobalErrorHandlers = { attached: false };
   private readonly disabled: boolean;
+  private destroyed = false;
 
   constructor(config: GunsoleClientConfig) {
     this.config = normalizeConfig(config);
@@ -46,7 +44,7 @@ export class GunsoleClient<
       this.config.endpoint,
       this.config.apiKey,
       this.config.projectId,
-      this.config.fetch
+      this.config.fetch,
     );
 
     if (this.disabled) {
@@ -63,15 +61,21 @@ export class GunsoleClient<
   log(level: LogLevel, options: LogOptions<Tags>): void;
   log(
     levelOrOptions: LogLevel | LogOptions<Tags>,
-    maybeOptions?: LogOptions<Tags>
+    maybeOptions?: LogOptions<Tags>,
   ): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
     const level: LogLevel =
       typeof levelOrOptions === "string" ? levelOrOptions : "info";
-    const options: LogOptions<Tags> =
-      typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
+    const options: LogOptions<Tags> | undefined =
+      typeof levelOrOptions === "string" ? maybeOptions : levelOrOptions;
+
+    // ? This will never be undefined, it is just a type assertion
+    if (!options) {
+      return;
+    }
+
     try {
       const internalEntry: InternalLogEntry = {
         level,
@@ -127,7 +131,7 @@ export class GunsoleClient<
    * Set user information
    */
   setUser(user: UserInfo): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
     this.user = user;
@@ -137,7 +141,7 @@ export class GunsoleClient<
    * Set session ID
    */
   setSessionId(sessionId: string): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
     this.sessionId = sessionId;
@@ -181,7 +185,7 @@ export class GunsoleClient<
 
       // Unhandled promise rejections
       this.globalHandlers.unhandledRejection = (
-        event: PromiseRejectionEvent
+        event: PromiseRejectionEvent,
       ) => {
         this.error({
           message: "Unhandled promise rejection",
@@ -223,7 +227,7 @@ export class GunsoleClient<
       if (typeof window !== "undefined") {
         window.addEventListener(
           "unhandledrejection",
-          this.globalHandlers.unhandledRejection
+          this.globalHandlers.unhandledRejection,
         );
         window.addEventListener("error", this.globalHandlers.error);
       }
@@ -231,7 +235,7 @@ export class GunsoleClient<
       if (typeof process !== "undefined") {
         this.globalHandlers.unhandledRejectionNode = (
           reason: unknown,
-          _promise: Promise<unknown>
+          _promise: Promise<unknown>,
         ) => {
           this.error({
             message: "Unhandled promise rejection",
@@ -263,7 +267,7 @@ export class GunsoleClient<
 
         process.on(
           "unhandledRejection",
-          this.globalHandlers.unhandledRejectionNode
+          this.globalHandlers.unhandledRejectionNode,
         );
         process.on("uncaughtException", this.globalHandlers.uncaughtException);
       }
@@ -289,7 +293,7 @@ export class GunsoleClient<
         if (this.globalHandlers.unhandledRejection) {
           window.removeEventListener(
             "unhandledrejection",
-            this.globalHandlers.unhandledRejection
+            this.globalHandlers.unhandledRejection,
           );
         }
         if (this.globalHandlers.error) {
@@ -301,13 +305,13 @@ export class GunsoleClient<
         if (this.globalHandlers.unhandledRejectionNode) {
           process.removeListener(
             "unhandledRejection",
-            this.globalHandlers.unhandledRejectionNode
+            this.globalHandlers.unhandledRejectionNode,
           );
         }
         if (this.globalHandlers.uncaughtException) {
           process.removeListener(
             "uncaughtException",
-            this.globalHandlers.uncaughtException
+            this.globalHandlers.uncaughtException,
           );
         }
       }
@@ -347,8 +351,14 @@ export class GunsoleClient<
    * Cleanup resources. Awaiting ensures remaining logs are flushed.
    */
   async destroy(): Promise<void> {
+    if (this.destroyed) {
+      return;
+    }
     this.stopFlushTimer();
     this.detachGlobalErrorHandlers();
     await this.flush();
+    this.user = null;
+    this.sessionId = null;
+    this.destroyed = true;
   }
 }

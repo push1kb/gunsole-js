@@ -43,6 +43,12 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
   if (!config.projectId) {
     throw new Error("projectId is required");
   }
+  if (config.batchSize !== undefined && config.batchSize < 1) {
+    throw new Error("batchSize must be at least 1");
+  }
+  if (config.flushInterval !== undefined && config.flushInterval < 100) {
+    throw new Error("flushInterval must be at least 100ms");
+  }
   return {
     projectId: config.projectId,
     apiKey: config.apiKey ?? "",

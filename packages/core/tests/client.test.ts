@@ -394,6 +394,61 @@ describe("isDisabled", () => {
   });
 });
 
+describe("Destroyed state guard", () => {
+  let config: GunsoleClientConfig;
+
+  beforeEach(() => {
+    config = {
+      projectId: "test-project",
+      apiKey: "test-api-key",
+      mode: "cloud",
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should not queue logs after destroy()", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const client = createGunsoleClient(config);
+    await client.destroy();
+
+    mockFetch.mockClear();
+
+    client.log({ message: "After destroy", bucket: "test" });
+    client.info({ message: "After destroy", bucket: "test" });
+    client.warn({ message: "After destroy", bucket: "test" });
+
+    await client.flush();
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("should not update user or session after destroy()", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const client = createGunsoleClient(config);
+    await client.destroy();
+
+    // Should not throw
+    client.setUser({ id: "user-1" });
+    client.setSessionId("session-1");
+  });
+
+  it("should be safe to call destroy() multiple times", async () => {
+    const client = createGunsoleClient(config);
+    await client.destroy();
+    await expect(client.destroy()).resolves.toBeUndefined();
+  });
+});
+
 describe("Global error handlers", () => {
   let config: GunsoleClientConfig;
 

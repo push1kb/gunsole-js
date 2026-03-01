@@ -59,24 +59,6 @@ export interface LogOptions<
 }
 
 /**
- * Log entry structure
- */
-export interface LogEntry {
-  /** Bucket/category for the log */
-  bucket: string;
-  /** Human-readable message */
-  message: string;
-  /** Additional context data */
-  context?: Record<string, unknown>;
-  /** Tags for filtering/grouping */
-  tags?: Record<string, string>;
-  /** Timestamp (Unix milliseconds, SDK fills if not provided) */
-  timestamp?: number;
-  /** Trace ID for distributed tracing */
-  traceId?: string;
-}
-
-/**
  * User information
  */
 export interface UserInfo {

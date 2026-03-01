@@ -85,4 +85,35 @@ describe("normalizeConfig", () => {
     expect(config.defaultTags).toEqual({ team: "backend" });
     expect(config.buckets).toEqual(["auth", "payment"]);
   });
+
+  it("should throw if batchSize is less than 1", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: 0 })
+    ).toThrow("batchSize must be at least 1");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: -5 })
+    ).toThrow("batchSize must be at least 1");
+  });
+
+  it("should throw if flushInterval is less than 100ms", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 0 })
+    ).toThrow("flushInterval must be at least 100ms");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 50 })
+    ).toThrow("flushInterval must be at least 100ms");
+  });
+
+  it("should accept valid batchSize and flushInterval", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+      batchSize: 1,
+      flushInterval: 100,
+    });
+    expect(config.batchSize).toBe(1);
+    expect(config.flushInterval).toBe(100);
+  });
 });

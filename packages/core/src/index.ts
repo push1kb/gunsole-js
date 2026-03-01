@@ -19,7 +19,6 @@ export type {
   ClientMode,
   FetchFunction,
   GunsoleClientConfig,
-  LogEntry,
   LogLevel,
   LogOptions,
   ReservedTagKey,
