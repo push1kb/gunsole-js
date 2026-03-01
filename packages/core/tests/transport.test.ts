@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Transport } from "../src/transport.js";
-import type { InternalLogEntry } from "../src/types.js";
+import { Transport } from "../src/transport";
+import type { InternalLogEntry } from "../src/types";
+
+async function gunzip(data: Uint8Array): Promise<string> {
+  const stream = new Blob([data])
+    .stream()
+    .pipeThrough(new DecompressionStream("gzip"));
+  return new Response(stream).text();
+}
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -12,7 +19,7 @@ describe("Transport", () => {
   const projectId = "test-project";
 
   beforeEach(() => {
-    transport = new Transport(endpoint, apiKey, projectId, undefined, true);
+    transport = new Transport(endpoint, apiKey, projectId);
     vi.clearAllMocks();
   });
 
@@ -40,10 +47,11 @@ describe("Transport", () => {
     expect(call[1]?.method).toBe("POST");
     expect(call[1]?.headers).toMatchObject({
       "Content-Type": "application/json",
+      "Content-Encoding": "gzip",
       Authorization: `Bearer ${apiKey}`,
     });
 
-    const body = JSON.parse(call[1]?.body as string);
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
     expect(body.projectId).toBe(projectId);
     expect(body.logs).toEqual(logs);
   });
@@ -165,7 +173,7 @@ describe("Transport", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("should eventually give up after max retries", async () => {
+  it("should throw after max retries are exhausted", async () => {
     const mockFetch = vi.mocked(global.fetch);
     mockFetch.mockRejectedValue(new Error("Persistent network error"));
 
@@ -178,10 +186,34 @@ describe("Transport", () => {
       },
     ];
 
-    // Should not throw
-    await expect(transport.sendBatch(logs)).resolves.toBeUndefined();
+    await expect(transport.sendBatch(logs)).rejects.toThrow(
+      "Persistent network error"
+    );
 
     // Should have tried MAX_RETRIES times
     expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("should pass an AbortSignal to fetch requests", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const logs: InternalLogEntry[] = [
+      {
+        level: "info",
+        bucket: "test",
+        message: "Test log",
+        timestamp: Date.now(),
+      },
+    ];
+
+    await transport.sendBatch(logs);
+
+    const call = mockFetch.mock.calls[0];
+    const init = call[1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 });

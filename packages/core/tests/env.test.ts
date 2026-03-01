@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getFetch, isBrowser, isNode } from "../src/utils/env.js";
+import { getFetch, isBrowser, isNode } from "../src/utils/env";
 
 describe("isNode", () => {
   it("should return true in Node.js environment", () => {

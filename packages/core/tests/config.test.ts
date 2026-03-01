@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeConfig, resolveEndpoint } from "../src/config.js";
+import { normalizeConfig, resolveEndpoint } from "../src/config";
 
 describe("resolveEndpoint", () => {
   it("should return cloud endpoint", () => {
@@ -40,7 +40,6 @@ describe("normalizeConfig", () => {
     expect(config.appVersion).toBe("");
     expect(config.batchSize).toBe(10);
     expect(config.flushInterval).toBe(5000);
-    expect(config.isDebug).toBe(false);
     expect(config.defaultTags).toEqual({});
     expect(config.buckets).toEqual([]);
   });
@@ -72,7 +71,6 @@ describe("normalizeConfig", () => {
       appVersion: "2.0.0",
       batchSize: 50,
       flushInterval: 10000,
-      isDebug: true,
       defaultTags: { team: "backend" },
       buckets: ["auth", "payment"],
     });
@@ -84,7 +82,6 @@ describe("normalizeConfig", () => {
     expect(config.appVersion).toBe("2.0.0");
     expect(config.batchSize).toBe(50);
     expect(config.flushInterval).toBe(10000);
-    expect(config.isDebug).toBe(true);
     expect(config.defaultTags).toEqual({ team: "backend" });
     expect(config.buckets).toEqual(["auth", "payment"]);
   });
