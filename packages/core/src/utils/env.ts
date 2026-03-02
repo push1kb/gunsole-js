@@ -52,5 +52,11 @@ export function getFetch(customFetch?: FetchFunction): FetchFunction {
       "fetch is not available. Please use Node.js 18+ or provide a custom fetch implementation in the config"
     );
   }
-  throw new Error("Unsupported environment: neither browser nor Node.js");
+  if (typeof globalThis.fetch !== "undefined") {
+    return globalThis.fetch;
+  }
+
+  throw new Error(
+    "Unsupported environment: fetch is not available. Provide a custom fetch implementation in the config."
+  );
 }

@@ -116,4 +116,31 @@ describe("normalizeConfig", () => {
     expect(config.batchSize).toBe(1);
     expect(config.flushInterval).toBe(100);
   });
+
+  it("should default maxQueueSize to 1000", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+    });
+    expect(config.maxQueueSize).toBe(1000);
+  });
+
+  it("should pass through custom maxQueueSize", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+      maxQueueSize: 500,
+    });
+    expect(config.maxQueueSize).toBe(500);
+  });
+
+  it("should throw if maxQueueSize is less than 1", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: 0 })
+    ).toThrow("maxQueueSize must be at least 1");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: -5 })
+    ).toThrow("maxQueueSize must be at least 1");
+  });
 });

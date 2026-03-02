@@ -98,6 +98,8 @@ export interface GunsoleClientConfig {
   flushInterval?: number;
   /** Custom fetch implementation (default: uses global fetch or throws error) */
   fetch?: FetchFunction;
+  /** Maximum number of log entries held in the queue (default: 1000). Oldest entries are dropped when exceeded. */
+  maxQueueSize?: number;
   /** When true, all SDK methods become no-ops. Useful for disabling in specific environments. */
   isDisabled?: boolean;
   /** Typed bucket names for bucket accessor methods */
@@ -132,6 +134,8 @@ export interface InternalLogEntry {
   appName?: string;
   /** Application version */
   appVersion?: string;
+  /** @internal */
+  _flushAttempts?: number;
 }
 
 /**

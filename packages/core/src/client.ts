@@ -11,6 +11,11 @@ import type {
 import { isDev } from "./utils/env";
 
 /**
+ * Maximum number of flush attempts before dropping a log entry
+ */
+const MAX_FLUSH_ATTEMPTS = 10;
+
+/**
  * Global error handler state
  */
 interface GlobalErrorHandlers {
@@ -98,6 +103,7 @@ export class GunsoleClient<
       };
 
       this.batch.push(internalEntry);
+      this.enforceQueueCap();
 
       // Flush if batch is full
       if (this.batch.length >= this.config.batchSize) {
@@ -160,11 +166,29 @@ export class GunsoleClient<
     }
     this.batch = [];
 
+    // Increment flush attempt counter on each entry
+    for (const entry of logsToSend) {
+      entry._flushAttempts = (entry._flushAttempts ?? 0) + 1;
+    }
+
     try {
       await this.transport.sendBatch(logsToSend);
     } catch (error) {
-      // Re-queue failed logs so they can be retried on next flush
-      this.batch.unshift(...logsToSend);
+      // Filter out entries that have exceeded the retry cap
+      const retriable = logsToSend.filter(
+        (entry) => (entry._flushAttempts ?? 0) < MAX_FLUSH_ATTEMPTS
+      );
+      const dropped = logsToSend.length - retriable.length;
+
+      if (dropped > 0 && isDev()) {
+        console.warn(
+          `[Gunsole] Dropped ${dropped} log(s) after ${MAX_FLUSH_ATTEMPTS} flush attempts`
+        );
+      }
+
+      // Re-queue surviving logs so they can be retried on next flush
+      this.batch.unshift(...retriable);
+      this.enforceQueueCap();
       if (isDev()) {
         console.warn("[Gunsole] Error in flush():", error);
       }
@@ -321,6 +345,16 @@ export class GunsoleClient<
       if (isDev()) {
         console.warn("[Gunsole] Error in detachGlobalErrorHandlers():", error);
       }
+    }
+  }
+
+  /**
+   * Drop oldest entries when the queue exceeds maxQueueSize
+   */
+  private enforceQueueCap(): void {
+    const overflow = this.batch.length - this.config.maxQueueSize;
+    if (overflow > 0) {
+      this.batch.splice(0, overflow);
     }
   }
 

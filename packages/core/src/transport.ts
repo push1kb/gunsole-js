@@ -20,7 +20,9 @@ const REQUEST_TIMEOUT_MS = 30_000;
  * Calculate exponential backoff delay
  */
 function calculateBackoffDelay(attempt: number): number {
-  return BASE_DELAY_MS * 2 ** attempt;
+  const base = BASE_DELAY_MS * 2 ** attempt;
+  const jitter = 0.5 + Math.random();
+  return Math.round(base * jitter);
 }
 
 /**
@@ -73,14 +75,17 @@ export class Transport {
 
     const payload: BatchPayload = {
       projectId: this.projectId,
-      logs,
+      logs: logs.map(({ _flushAttempts: _, ...rest }) => rest),
     };
 
     let lastError: unknown;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const body = await gzipCompress(JSON.stringify(payload));
+        const json = JSON.stringify(payload, (_key, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        );
+        const body = await gzipCompress(json);
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
           "Content-Encoding": "gzip",

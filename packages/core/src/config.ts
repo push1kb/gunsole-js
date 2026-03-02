@@ -15,6 +15,7 @@ const DEFAULT_ENDPOINTS: Record<ClientMode, string> = {
 const DEFAULT_CONFIG = {
   batchSize: 10,
   flushInterval: 5000,
+  maxQueueSize: 1000,
 };
 
 /**
@@ -49,6 +50,9 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
   if (config.flushInterval !== undefined && config.flushInterval < 100) {
     throw new Error("flushInterval must be at least 100ms");
   }
+  if (config.maxQueueSize !== undefined && config.maxQueueSize < 1) {
+    throw new Error("maxQueueSize must be at least 1");
+  }
   return {
     projectId: config.projectId,
     apiKey: config.apiKey ?? "",
@@ -60,6 +64,7 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
     defaultTags: config.defaultTags ?? {},
     batchSize: config.batchSize ?? DEFAULT_CONFIG.batchSize,
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
+    maxQueueSize: config.maxQueueSize ?? DEFAULT_CONFIG.maxQueueSize,
     fetch: config.fetch,
     isDisabled: config.isDisabled ?? false,
     buckets: config.buckets ?? [],
