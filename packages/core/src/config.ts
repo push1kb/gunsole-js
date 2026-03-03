@@ -36,10 +36,11 @@ export function resolveEndpoint(
  */
 export function normalizeConfig(config: GunsoleClientConfig): Omit<
   Required<GunsoleClientConfig>,
-  "fetch"
+  "fetch" | "beforeSend"
 > & {
   endpoint: string;
   fetch?: GunsoleClientConfig["fetch"];
+  beforeSend?: GunsoleClientConfig["beforeSend"];
 } {
   if (!config.projectId) {
     throw new Error("projectId is required");
@@ -52,6 +53,16 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
   }
   if (config.maxQueueSize !== undefined && config.maxQueueSize < 1) {
     throw new Error("maxQueueSize must be at least 1");
+  }
+  if (
+    config.maxLogRate !== undefined &&
+    config.maxLogRate !== 0 &&
+    config.maxLogRate < 1
+  ) {
+    throw new Error("maxLogRate must be 0 (disabled) or at least 1");
+  }
+  if (config.maxBurst !== undefined && config.maxBurst < 1) {
+    throw new Error("maxBurst must be at least 1");
   }
   return {
     projectId: config.projectId,
@@ -68,5 +79,10 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
     fetch: config.fetch,
     isDisabled: config.isDisabled ?? false,
     buckets: config.buckets ?? [],
+    isDebug: config.isDebug ?? false,
+    maxLogRate: config.maxLogRate ?? 10,
+    maxBurst: config.maxBurst ?? 100,
+    beforeSend: config.beforeSend,
+    hooks: config.hooks ?? {},
   };
 }

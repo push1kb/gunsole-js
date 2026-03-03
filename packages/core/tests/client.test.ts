@@ -297,6 +297,8 @@ describe("Bucket methods", () => {
       "destroy",
       "setUser",
       "setSessionId",
+      "setDebug",
+      "isDestroyed",
       "attachGlobalErrorHandlers",
       "detachGlobalErrorHandlers",
     ];

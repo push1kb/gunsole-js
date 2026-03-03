@@ -56,6 +56,8 @@ export interface LogOptions<
   tags?: Partial<Tags> | TagEntry<Tags>[];
   /** Trace ID for distributed tracing */
   traceId?: string;
+  /** Per-call user ID override (useful for server-side contexts) */
+  userId?: string;
 }
 
 /**
@@ -70,6 +72,18 @@ export interface UserInfo {
   name?: string;
   /** Additional user traits */
   traits?: Record<string, unknown>;
+}
+
+/**
+ * Lifecycle hooks for the Gunsole client
+ */
+export interface GunsoleHooks {
+  /** Called after a log entry is added to the batch */
+  onLog?: (entry: InternalLogEntry) => void;
+  /** Called after a flush attempt (success or failure) */
+  onFlush?: (logs: InternalLogEntry[], success: boolean) => void;
+  /** Called when a flush error occurs */
+  onError?: (error: unknown) => void;
 }
 
 /**
@@ -104,6 +118,16 @@ export interface GunsoleClientConfig {
   isDisabled?: boolean;
   /** Typed bucket names for bucket accessor methods */
   buckets?: readonly string[];
+  /** Enable debug mode (disables gzip, enables console warnings). Defaults to isDev() check. */
+  isDebug?: boolean;
+  /** Maximum log rate per second (default: 10, 0 to disable) */
+  maxLogRate?: number;
+  /** Maximum burst size for rate limiting (default: 100) */
+  maxBurst?: number;
+  /** Transform or filter log entries before batching. Return null to drop. */
+  beforeSend?: (entry: InternalLogEntry) => InternalLogEntry | null;
+  /** Lifecycle hooks */
+  hooks?: GunsoleHooks;
 }
 
 /**

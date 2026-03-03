@@ -8,6 +8,7 @@
 
 export { createGunsoleClient } from "./factory";
 export { GunsoleClient } from "./client";
+export { SDK_VERSION } from "./version";
 export type {
   BucketLogOptions,
   BucketLogger,
@@ -19,6 +20,8 @@ export type {
   ClientMode,
   FetchFunction,
   GunsoleClientConfig,
+  GunsoleHooks,
+  InternalLogEntry,
   LogLevel,
   LogOptions,
   ReservedTagKey,

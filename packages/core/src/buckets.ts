@@ -40,8 +40,10 @@ export type ReservedBucketName =
   | "error"
   | "setUser"
   | "setSessionId"
+  | "setDebug"
   | "flush"
   | "destroy"
+  | "isDestroyed"
   | "attachGlobalErrorHandlers"
   | "detachGlobalErrorHandlers";
 
@@ -60,8 +62,10 @@ const RESERVED_NAMES: Set<string> = new Set<ReservedBucketName>([
   "error",
   "setUser",
   "setSessionId",
+  "setDebug",
   "flush",
   "destroy",
+  "isDestroyed",
   "attachGlobalErrorHandlers",
   "detachGlobalErrorHandlers",
 ]);
@@ -112,8 +116,10 @@ export function attachBuckets<
         `Bucket name "${name}" conflicts with a reserved GunsoleClient method`
       );
     }
-    (client as unknown as Record<string, unknown>)[name] =
-      createBucketLogger(client, name);
+    (client as unknown as Record<string, unknown>)[name] = createBucketLogger(
+      client,
+      name
+    );
   }
   return client as GunsoleClient<Tags> & WithBuckets<Tags, Buckets>;
 }

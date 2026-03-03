@@ -23,9 +23,9 @@ describe("resolveEndpoint", () => {
 
 describe("normalizeConfig", () => {
   it("should throw if projectId is missing", () => {
-    expect(() =>
-      normalizeConfig({ projectId: "", mode: "cloud" })
-    ).toThrow("projectId is required");
+    expect(() => normalizeConfig({ projectId: "", mode: "cloud" })).toThrow(
+      "projectId is required"
+    );
   });
 
   it("should apply default values", () => {

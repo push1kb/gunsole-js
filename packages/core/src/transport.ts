@@ -1,5 +1,6 @@
 import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types";
 import { getFetch } from "./utils/env";
+import { SDK_VERSION } from "./version";
 
 /**
  * Maximum number of retry attempts
@@ -51,17 +52,20 @@ export class Transport {
   private apiKey: string;
   private projectId: string;
   private fetch: FetchFunction;
+  private isDebugFn: () => boolean;
 
   constructor(
     endpoint: string,
     apiKey: string,
     projectId: string,
-    fetch?: FetchFunction
+    fetch?: FetchFunction,
+    isDebugFn?: () => boolean
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
     this.projectId = projectId;
     this.fetch = fetch ?? getFetch();
+    this.isDebugFn = isDebugFn ?? (() => false);
   }
 
   /**
@@ -78,6 +82,7 @@ export class Transport {
       logs: logs.map(({ _flushAttempts: _, ...rest }) => rest),
     };
 
+    const debug = this.isDebugFn();
     let lastError: unknown;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -85,14 +90,22 @@ export class Transport {
         const json = JSON.stringify(payload, (_key, value) =>
           typeof value === "bigint" ? value.toString() : value
         );
-        const body = await gzipCompress(json);
+
+        let body: BodyInit;
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
-          "Content-Encoding": "gzip",
+          "X-Gunsole-SDK-Version": SDK_VERSION,
         };
 
+        if (debug) {
+          body = json;
+        } else {
+          body = (await gzipCompress(json)) as BodyInit;
+          headers["Content-Encoding"] = "gzip";
+        }
+
         if (this.apiKey) {
-          headers["Authorization"] = `Bearer ${this.apiKey}`;
+          headers.Authorization = `Bearer ${this.apiKey}`;
         }
 
         const controller = new AbortController();
@@ -106,7 +119,7 @@ export class Transport {
           response = await this.fetch(`${this.endpoint}/logs`, {
             method: "POST",
             headers,
-            body: body as BodyInit,
+            body,
             signal: controller.signal,
           });
         } finally {
@@ -114,6 +127,17 @@ export class Transport {
         }
 
         if (response.ok) {
+          return;
+        }
+
+        // HTTP 413: payload too large — split and retry
+        if (response.status === 413) {
+          if (logs.length > 1) {
+            const mid = Math.ceil(logs.length / 2);
+            await this.sendBatch(logs.slice(0, mid));
+            await this.sendBatch(logs.slice(mid));
+          }
+          // Single entry too large — silently drop
           return;
         }
 

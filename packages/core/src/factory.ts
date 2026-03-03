@@ -32,16 +32,10 @@ type BaseConfig = Omit<GunsoleClientConfig, "buckets">;
  * ```
  */
 export function createGunsoleClient<
-  Tags extends Record<string, string> & ValidTagSchema = Record<
-    string,
-    string
-  >,
+  Tags extends Record<string, string> & ValidTagSchema = Record<string, string>,
 >(config: BaseConfig): GunsoleClient<Tags>;
 export function createGunsoleClient<
-  Tags extends Record<string, string> & ValidTagSchema = Record<
-    string,
-    string
-  >,
+  Tags extends Record<string, string> & ValidTagSchema = Record<string, string>,
   const Buckets extends readonly string[] = readonly string[],
 >(
   config: BaseConfig & {
@@ -49,10 +43,7 @@ export function createGunsoleClient<
   }
 ): GunsoleClient<Tags> & WithBuckets<Tags, Buckets[number]>;
 export function createGunsoleClient<
-  Tags extends Record<string, string> & ValidTagSchema = Record<
-    string,
-    string
-  >,
+  Tags extends Record<string, string> & ValidTagSchema = Record<string, string>,
   const Buckets extends readonly string[] = readonly string[],
 >(
   config: GunsoleClientConfig & { buckets?: Buckets }
@@ -62,6 +53,5 @@ export function createGunsoleClient<
   if (buckets.length > 0) {
     return attachBuckets<Tags, Buckets[number]>(client, buckets);
   }
-  return client as GunsoleClient<Tags> &
-    WithBuckets<Tags, Buckets[number]>;
+  return client as GunsoleClient<Tags> & WithBuckets<Tags, Buckets[number]>;
 }
