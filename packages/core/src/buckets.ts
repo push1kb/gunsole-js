@@ -44,6 +44,10 @@ export type ReservedBucketName =
   | "flush"
   | "destroy"
   | "isDestroyed"
+  | "drainBatch"
+  | "projectId"
+  | "apiKey"
+  | "logEndpoint"
   | "attachGlobalErrorHandlers"
   | "detachGlobalErrorHandlers";
 
@@ -66,6 +70,10 @@ const RESERVED_NAMES: Set<string> = new Set<ReservedBucketName>([
   "flush",
   "destroy",
   "isDestroyed",
+  "drainBatch",
+  "projectId",
+  "apiKey",
+  "logEndpoint",
   "attachGlobalErrorHandlers",
   "detachGlobalErrorHandlers",
 ]);

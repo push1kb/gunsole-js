@@ -84,6 +84,36 @@ export class GunsoleClient<
   }
 
   /**
+   * Read-only project ID
+   */
+  get projectId(): string {
+    return this.config.projectId;
+  }
+
+  /**
+   * Read-only API key
+   */
+  get apiKey(): string {
+    return this.config.apiKey;
+  }
+
+  /**
+   * Read-only log endpoint URL
+   */
+  get logEndpoint(): string {
+    return `${this.config.endpoint}/logs`;
+  }
+
+  /**
+   * Atomically drain and return all pending log entries
+   */
+  drainBatch(): InternalLogEntry[] {
+    const entries = this.batch;
+    this.batch = [];
+    return entries;
+  }
+
+  /**
    * Enable or disable debug mode at runtime
    */
   setDebug(enabled: boolean): void {

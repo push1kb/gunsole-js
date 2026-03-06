@@ -299,6 +299,10 @@ describe("Bucket methods", () => {
       "setSessionId",
       "setDebug",
       "isDestroyed",
+      "drainBatch",
+      "projectId",
+      "apiKey",
+      "logEndpoint",
       "attachGlobalErrorHandlers",
       "detachGlobalErrorHandlers",
     ];
@@ -624,6 +628,86 @@ describe("Retry cap on re-queued batches", () => {
     expect(body.logs[0]._flushAttempts).toBeUndefined();
 
     await client.destroy();
+  });
+});
+
+describe("drainBatch", () => {
+  let config: GunsoleClientConfig;
+
+  beforeEach(() => {
+    config = {
+      projectId: "test-project",
+      apiKey: "test-api-key",
+      mode: "cloud",
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should return and clear pending entries", () => {
+    const client = createGunsoleClient({
+      ...config,
+      batchSize: 100,
+    });
+
+    client.log({ message: "Log 1", bucket: "test" });
+    client.log({ message: "Log 2", bucket: "test" });
+
+    const drained = client.drainBatch();
+    expect(drained).toHaveLength(2);
+    expect(drained[0].message).toBe("Log 1");
+    expect(drained[1].message).toBe("Log 2");
+
+    // Batch should be empty after drain
+    const second = client.drainBatch();
+    expect(second).toHaveLength(0);
+
+    client.destroy();
+  });
+
+  it("should return empty array when no logs", () => {
+    const client = createGunsoleClient(config);
+    expect(client.drainBatch()).toHaveLength(0);
+    client.destroy();
+  });
+});
+
+describe("Config getters", () => {
+  it("should expose projectId", () => {
+    const client = createGunsoleClient({
+      projectId: "my-project",
+      mode: "cloud",
+    });
+    expect(client.projectId).toBe("my-project");
+    client.destroy();
+  });
+
+  it("should expose apiKey", () => {
+    const client = createGunsoleClient({
+      projectId: "test",
+      apiKey: "secret-key",
+      mode: "cloud",
+    });
+    expect(client.apiKey).toBe("secret-key");
+    client.destroy();
+  });
+
+  it("should expose logEndpoint with default cloud endpoint", () => {
+    const client = createGunsoleClient({
+      projectId: "test",
+      mode: "cloud",
+    });
+    expect(client.logEndpoint).toBe("https://api.gunsole.com/logs");
+    client.destroy();
+  });
+
+  it("should expose logEndpoint with custom endpoint", () => {
+    const client = createGunsoleClient({
+      projectId: "test",
+      mode: "cloud",
+      endpoint: "https://custom.example.com",
+    });
+    expect(client.logEndpoint).toBe("https://custom.example.com/logs");
+    client.destroy();
   });
 });
 
