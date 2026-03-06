@@ -1,5 +1,5 @@
-import { createGunsoleClient } from "@gunsole/core";
-import { createSignal, onCleanup, onMount, Show, For } from "solid-js";
+import { createGunsoleClient } from "@gunsole/web";
+import { For, Show, createSignal, onMount } from "solid-js";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 
 const gunsole = createGunsoleClient({
@@ -47,7 +47,6 @@ function getRating(
 
 function App() {
   const [userId, setUserId] = createSignal("user-123");
-  const [sessionId, setSessionId] = createSignal("session-abc");
   const [pokemonName, setPokemonName] = createSignal("pikachu");
   const [pokemon, setPokemon] = createSignal<Pokemon | null>(null);
   const [loading, setLoading] = createSignal(false);
@@ -82,8 +81,6 @@ function App() {
     onTTFB(reportVital);
 
     gunsole.setUser({ id: userId(), email: "user@example.com" });
-    gunsole.setSessionId(sessionId());
-    gunsole.attachGlobalErrorHandlers();
 
     gunsole.log({
       message: "App mounted",
@@ -92,10 +89,7 @@ function App() {
     });
   });
 
-  onCleanup(() => {
-    gunsole.detachGlobalErrorHandlers();
-    gunsole.flush();
-  });
+  // No need to call destroy() — web lifecycle handles pagehide/visibility
 
   const fetchPokemon = async () => {
     const traceId = generateTraceId();
@@ -314,9 +308,9 @@ function App() {
             </div>
           </section>
 
-          {/* User & Session */}
+          {/* User */}
           <section class="bg-zinc-800 rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4">User & Session</h2>
+            <h2 class="text-xl font-semibold mb-4">User</h2>
             <div class="grid gap-4 max-w-sm mx-auto">
               <label class="block">
                 <span class="text-zinc-300 text-sm">User ID</span>
@@ -324,15 +318,6 @@ function App() {
                   type="text"
                   value={userId()}
                   onInput={(e) => setUserId(e.currentTarget.value)}
-                  class="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </label>
-              <label class="block">
-                <span class="text-zinc-300 text-sm">Session ID</span>
-                <input
-                  type="text"
-                  value={sessionId()}
-                  onInput={(e) => setSessionId(e.currentTarget.value)}
                   class="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </label>

@@ -1,4 +1,4 @@
-import { createGunsoleClient } from "@gunsole/core";
+import { createGunsoleClient } from "@gunsole/web";
 import { useCallback, useEffect, useState } from "react";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 
@@ -29,7 +29,6 @@ function generateTraceId(): string {
 
 function App() {
   const [userId, setUserId] = useState("user-123");
-  const [sessionId, setSessionId] = useState("session-abc");
   const [pokemonName, setPokemonName] = useState("pikachu");
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [loading, setLoading] = useState(false);
@@ -63,21 +62,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    gunsole.setUser({ id: userId, email: "user@example.com" });
-    gunsole.setSessionId(sessionId);
-    gunsole.attachGlobalErrorHandlers();
-
     gunsole.log({
       message: "App mounted",
       bucket: "app_lifecycle",
       context: { framework: "react" },
     });
+  }, []);
 
-    return () => {
-      gunsole.detachGlobalErrorHandlers();
-      gunsole.flush();
-    };
-  }, [userId, sessionId]);
+  useEffect(() => {
+    gunsole.setUser({ id: userId, email: "user@example.com" });
+  }, [userId]);
 
   const fetchPokemon = useCallback(async () => {
     const traceId = generateTraceId();
@@ -293,9 +287,9 @@ function App() {
             </div>
           </section>
 
-          {/* User & Session */}
+          {/* User */}
           <section className="bg-zinc-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">User & Session</h2>
+            <h2 className="text-xl font-semibold mb-4">User</h2>
             <div className="grid gap-4 max-w-sm mx-auto">
               <label className="block">
                 <span className="text-zinc-300 text-sm">User ID</span>
@@ -303,15 +297,6 @@ function App() {
                   type="text"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </label>
-              <label className="block">
-                <span className="text-zinc-300 text-sm">Session ID</span>
-                <input
-                  type="text"
-                  value={sessionId}
-                  onChange={(e) => setSessionId(e.target.value)}
                   className="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </label>

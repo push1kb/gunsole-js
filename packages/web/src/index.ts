@@ -1,11 +1,28 @@
 /**
- * Gunsole Web Lifecycle Utilities
+ * Gunsole Web
  *
- * Browser-specific lifecycle handlers for @gunsole/core.
+ * Browser-optimised wrapper around @gunsole/core with lifecycle baked in.
  *
  * @packageDocumentation
  */
 
+export { createGunsoleClient } from "./factory";
+
+// Low-level primitives for advanced users
 export { attachWebLifecycle } from "./lifecycle";
 export { createKeepaliveFetch } from "./keepalive";
 export type { DetachFunction, WebLifecycleOptions } from "./types";
+
+// Re-export key types from core so consumers only need @gunsole/web
+export type {
+  ClientMode,
+  FetchFunction,
+  GunsoleClientConfig,
+  GunsoleHooks,
+  LogLevel,
+  LogOptions,
+  TagEntry,
+  UserInfo,
+  ValidTagSchema,
+} from "@gunsole/core";
+export { GunsoleClient, SDK_VERSION } from "@gunsole/core";
