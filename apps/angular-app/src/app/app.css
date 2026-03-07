@@ -1,87 +1,307 @@
 .app {
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: 100vh;
   padding: 2rem;
-  text-align: center;
+}
+
+.container {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  height: 3rem;
+  width: 3rem;
+}
+
+.logo-sm {
+  height: 2.5rem;
+  width: 2.5rem;
 }
 
 h1 {
-  font-size: 2.5em;
-  margin-bottom: 1rem;
-  background: linear-gradient(45deg, #dd0031, #c3002f);
+  font-size: 2.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(to right, #6366f1, #a855f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.card {
-  padding: 2em;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .section {
-  margin: 2rem 0;
+  background-color: #27272a;
+  border-radius: 0.5rem;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
 }
 
 .section h2 {
-  margin-top: 0;
-  font-size: 1.5em;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .button-group {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: center;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.875rem;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  color: white;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.15s;
+}
+
+.btn-blue { background-color: #2563eb; }
+.btn-blue:hover { background-color: #1d4ed8; }
+
+.btn-gray { background-color: #4b5563; }
+.btn-gray:hover { background-color: #374151; }
+
+.btn-yellow { background-color: #ca8a04; }
+.btn-yellow:hover { background-color: #a16207; }
+
+.btn-red { background-color: #dc2626; }
+.btn-red:hover { background-color: #b91c1c; }
+
+.btn-green { background-color: #16a34a; }
+.btn-green:hover { background-color: #15803d; }
+
+.btn-indigo { background-color: #4f46e5; }
+.btn-indigo:hover { background-color: #4338ca; }
+
+.search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-row input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #52525b;
+  background-color: #3f3f46;
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.search-row input:focus {
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+.error-text {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+.pokemon-card {
+  background-color: rgba(63, 63, 70, 0.5);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.pokemon-sprite {
+  width: 8rem;
+  height: 8rem;
+  margin: 0 auto;
+  image-rendering: pixelated;
+}
+
+.pokemon-sprite-sm {
+  width: 6rem;
+  height: 6rem;
+  image-rendering: pixelated;
+}
+
+.pokemon-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  margin-top: 0.5rem;
+}
+
+.pokemon-info {
+  color: #d4d4d8;
+  margin-top: 0.5rem;
+}
+
+.pokemon-info p {
+  margin: 0.25rem 0;
+}
+
+.pokemon-info strong,
+.pokemon-details strong {
   color: white;
 }
 
-button:hover {
-  border-color: #dd0031;
+.pokemon-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #52525b;
+  text-align: left;
+  color: #d4d4d8;
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.pokemon-details p {
+  margin: 0.5rem 0;
+}
+
+.sprite-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sprite-item {
+  text-align: center;
+}
+
+.sprite-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.stats {
+  margin-top: 0.75rem;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.stat-name {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  width: 6rem;
+  text-align: right;
+  text-transform: capitalize;
+}
+
+.stat-bar-bg {
+  flex: 1;
+  background-color: #52525b;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.stat-bar {
+  background-color: #6366f1;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+.stat-value {
+  font-size: 0.75rem;
+  color: #d4d4d8;
+  width: 2rem;
+}
+
+.btn-detail {
+  margin-top: 1rem;
+  padding: 0.375rem 1rem;
+  font-size: 0.875rem;
+  background-color: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 0.5rem;
+  transition: background-color 0.15s;
+}
+
+.btn-detail:hover {
+  background-color: rgba(99, 102, 241, 0.4);
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.suggestions-label {
+  color: #a1a1aa;
+}
+
+.btn-suggestion {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  background-color: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 0.5rem;
+  transition: background-color 0.15s;
+}
+
+.btn-suggestion:hover {
+  background-color: rgba(99, 102, 241, 0.4);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1rem;
-  align-items: center;
+  max-width: 24rem;
+  margin: 0 auto;
 }
 
 .input-group label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 300px;
+  display: block;
+}
+
+.input-group label span {
+  display: block;
+  font-size: 0.875rem;
+  color: #d4d4d8;
+  margin-bottom: 0.25rem;
 }
 
 .input-group input {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.3);
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #52525b;
+  background-color: #3f3f46;
   color: white;
-  font-size: 1em;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.input-group input:focus {
+  box-shadow: 0 0 0 2px #6366f1;
 }

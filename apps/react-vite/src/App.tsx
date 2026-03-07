@@ -1,16 +1,9 @@
-import { createGunsoleClient } from "@gunsole/web";
+import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
-
-const gunsole = createGunsoleClient({
-  projectId: "test-project-react",
-  apiKey: "test-api-key",
-  mode: "local",
-  env: "development",
-  appName: "React Vite App",
-  appVersion: "1.0.0",
-  defaultTags: { framework: "react", bundler: "vite" },
-});
+import gunsoleLogo from "./assets/gunsole.svg";
+import reactLogo from "./assets/react.svg";
+import { gunsole } from "./gunsole";
 
 interface Pokemon {
   id: number;
@@ -34,7 +27,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Report web vitals
   useEffect(() => {
     const reportVital = (metric: {
       name: string;
@@ -112,7 +104,6 @@ function App() {
           pokemonId: data.id,
           fetchTimeMs: Math.round(fetchTime),
           totalTimeMs: Math.round(totalTime),
-          responseSize: JSON.stringify(data).length,
         },
         tags: { api: "pokeapi", action: "fetch_success", status: "200" },
         traceId,
@@ -175,6 +166,10 @@ function App() {
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-8">
       <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <img src={gunsoleLogo} alt="Gunsole" className="h-12 w-12" />
+          <img src={reactLogo} alt="React" className="h-10 w-10" />
+        </div>
         <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
           Gunsole JS - React + Vite
         </h1>
@@ -232,6 +227,14 @@ function App() {
                     {pokemon.types.map((t) => t.type.name).join(", ")}
                   </p>
                 </div>
+
+                <Link
+                  to="/pokemon/$pokemonId"
+                  params={{ pokemonId: String(pokemon.id) }}
+                  className="mt-4 inline-block px-4 py-1.5 text-sm bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg transition-colors"
+                >
+                  More Details
+                </Link>
               </div>
             )}
 

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@gunsole/web": "workspace:*",
+    "@tanstack/solid-router": "^1.166.2",
     "solid-js": "^1.9.10",
     "web-vitals": "^5.1.0"
   },
