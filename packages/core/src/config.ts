@@ -4,8 +4,8 @@ import type { ClientMode, GunsoleClientConfig } from "./types";
  * Default endpoints for each mode
  */
 const DEFAULT_ENDPOINTS: Record<ClientMode, string> = {
-  desktop: "http://localhost:8787",
-  local: "http://localhost:17655",
+  desktop: "http://localhost:17655",
+  local: "https://local.gunsole.com",
   cloud: "https://api.gunsole.com",
 };
 
@@ -45,6 +45,9 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
 } {
   if (!config.projectId) {
     throw new Error("projectId is required");
+  }
+  if (!config.apiKey && config.mode !== "desktop") {
+    throw new Error("apiKey is required for cloud and local modes");
   }
   if (config.batchSize !== undefined && config.batchSize < 1) {
     throw new Error("batchSize must be at least 1");

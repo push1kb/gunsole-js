@@ -675,6 +675,7 @@ describe("Config getters", () => {
   it("should expose projectId", () => {
     const client = createGunsoleClient({
       projectId: "my-project",
+      apiKey: "test-key",
       mode: "cloud",
     });
     expect(client.projectId).toBe("my-project");
@@ -694,6 +695,7 @@ describe("Config getters", () => {
   it("should expose logEndpoint with default cloud endpoint", () => {
     const client = createGunsoleClient({
       projectId: "test",
+      apiKey: "test-key",
       mode: "cloud",
     });
     expect(client.logEndpoint).toBe("https://api.gunsole.com/logs");
@@ -703,6 +705,7 @@ describe("Config getters", () => {
   it("should expose logEndpoint with custom endpoint", () => {
     const client = createGunsoleClient({
       projectId: "test",
+      apiKey: "test-key",
       mode: "cloud",
       endpoint: "https://custom.example.com",
     });

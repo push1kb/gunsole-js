@@ -102,8 +102,8 @@ await gunsole.flush();
 ### Modes
 
 - `cloud`: Sends logs to `https://api.gunsole.com` (default for SaaS)
-- `desktop`: Sends logs to `http://localhost:8787` (Gunsole Desktop app)
-- `local`: Sends logs to `http://localhost:17655` (local development)
+- `desktop`: Sends logs to `http://localhost:17655` (Gunsole Desktop app)
+- `local`: Sends logs to `https://local.gunsole.com` (local development)
 
 ### Options
 

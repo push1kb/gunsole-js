@@ -55,8 +55,8 @@ const gunsole = createGunsoleClient({
 | Mode        | Endpoint                    |
 | ----------- | --------------------------- |
 | `"cloud"`   | `https://api.gunsole.com`   |
-| `"desktop"` | `http://localhost:8787`     |
-| `"local"`   | `http://localhost:17655`    |
+| `"desktop"` | `http://localhost:17655`    |
+| `"local"`   | `https://local.gunsole.com` |
 
 Setting `endpoint` overrides the mode default.
 
