@@ -218,7 +218,7 @@ export default function GunsoleTest() {
                 >
                   {name}
                 </button>
-              ),
+              )
             )}
           </div>
         </div>

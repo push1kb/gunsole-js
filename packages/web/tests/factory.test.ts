@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as lifecycle from "../src/lifecycle";
 import * as keepalive from "../src/keepalive";
+import * as lifecycle from "../src/lifecycle";
 
 // Spy on lifecycle and keepalive instead of mocking @gunsole/core
 vi.mock("@gunsole/core", async (importOriginal) => {

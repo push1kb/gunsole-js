@@ -1,5 +1,5 @@
 import { Component, signal } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { type ActivatedRoute, RouterLink } from "@angular/router";
 import { createGunsoleClient } from "@gunsole/web";
 
 const gunsole = createGunsoleClient({
@@ -69,7 +69,11 @@ export class PokemonDetail {
       gunsole.info({
         message: `Pokemon detail fetched: ${data.name}`,
         bucket: "api_request",
-        context: { pokemon: data.name, pokemonId: data.id, totalTimeMs: Math.round(totalTime) },
+        context: {
+          pokemon: data.name,
+          pokemonId: data.id,
+          totalTimeMs: Math.round(totalTime),
+        },
         tags: { api: "pokeapi", action: "detail_fetch_success" },
         traceId,
       });

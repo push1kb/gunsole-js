@@ -74,23 +74,47 @@ button {
   transition: background-color 0.15s;
 }
 
-.btn-blue { background-color: #2563eb; }
-.btn-blue:hover { background-color: #1d4ed8; }
+.btn-blue {
+  background-color: #2563eb;
+}
+.btn-blue:hover {
+  background-color: #1d4ed8;
+}
 
-.btn-gray { background-color: #4b5563; }
-.btn-gray:hover { background-color: #374151; }
+.btn-gray {
+  background-color: #4b5563;
+}
+.btn-gray:hover {
+  background-color: #374151;
+}
 
-.btn-yellow { background-color: #ca8a04; }
-.btn-yellow:hover { background-color: #a16207; }
+.btn-yellow {
+  background-color: #ca8a04;
+}
+.btn-yellow:hover {
+  background-color: #a16207;
+}
 
-.btn-red { background-color: #dc2626; }
-.btn-red:hover { background-color: #b91c1c; }
+.btn-red {
+  background-color: #dc2626;
+}
+.btn-red:hover {
+  background-color: #b91c1c;
+}
 
-.btn-green { background-color: #16a34a; }
-.btn-green:hover { background-color: #15803d; }
+.btn-green {
+  background-color: #16a34a;
+}
+.btn-green:hover {
+  background-color: #15803d;
+}
 
-.btn-indigo { background-color: #4f46e5; }
-.btn-indigo:hover { background-color: #4338ca; }
+.btn-indigo {
+  background-color: #4f46e5;
+}
+.btn-indigo:hover {
+  background-color: #4338ca;
+}
 
 .search-row {
   display: flex;

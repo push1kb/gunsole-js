@@ -51,7 +51,11 @@ export default function PokemonDetail() {
       gunsole.info({
         message: `Pokemon detail fetched: ${data.name}`,
         bucket: "api_request",
-        context: { pokemon: data.name, pokemonId: data.id, totalTimeMs: Math.round(totalTime) },
+        context: {
+          pokemon: data.name,
+          pokemonId: data.id,
+          totalTimeMs: Math.round(totalTime),
+        },
         tags: { api: "pokeapi", action: "detail_fetch_success" },
         traceId,
       });
@@ -114,12 +118,32 @@ export default function PokemonDetail() {
             </h1>
 
             <div className="grid grid-cols-2 gap-4 text-zinc-300 mb-6">
-              <p><span className="font-medium text-white">ID:</span> #{pokemon.id}</p>
-              <p><span className="font-medium text-white">Base XP:</span> {pokemon.base_experience}</p>
-              <p><span className="font-medium text-white">Height:</span> {pokemon.height / 10}m</p>
-              <p><span className="font-medium text-white">Weight:</span> {pokemon.weight / 10}kg</p>
-              <p><span className="font-medium text-white">Types:</span> {pokemon.types.map((t) => t.type.name).join(", ")}</p>
-              <p><span className="font-medium text-white">Abilities:</span> {pokemon.abilities.map((a) => a.ability.name + (a.is_hidden ? " (hidden)" : "")).join(", ")}</p>
+              <p>
+                <span className="font-medium text-white">ID:</span> #
+                {pokemon.id}
+              </p>
+              <p>
+                <span className="font-medium text-white">Base XP:</span>{" "}
+                {pokemon.base_experience}
+              </p>
+              <p>
+                <span className="font-medium text-white">Height:</span>{" "}
+                {pokemon.height / 10}m
+              </p>
+              <p>
+                <span className="font-medium text-white">Weight:</span>{" "}
+                {pokemon.weight / 10}kg
+              </p>
+              <p>
+                <span className="font-medium text-white">Types:</span>{" "}
+                {pokemon.types.map((t) => t.type.name).join(", ")}
+              </p>
+              <p>
+                <span className="font-medium text-white">Abilities:</span>{" "}
+                {pokemon.abilities
+                  .map((a) => a.ability.name + (a.is_hidden ? " (hidden)" : ""))
+                  .join(", ")}
+              </p>
             </div>
 
             <div className="space-y-1">
@@ -132,10 +156,14 @@ export default function PokemonDetail() {
                   <div className="flex-1 bg-zinc-600 rounded-full h-2">
                     <div
                       className="bg-indigo-500 h-2 rounded-full"
-                      style={{ width: `${Math.min(100, (s.base_stat / 255) * 100)}%` }}
+                      style={{
+                        width: `${Math.min(100, (s.base_stat / 255) * 100)}%`,
+                      }}
                     />
                   </div>
-                  <span className="text-xs text-zinc-300 w-8">{s.base_stat}</span>
+                  <span className="text-xs text-zinc-300 w-8">
+                    {s.base_stat}
+                  </span>
                 </div>
               ))}
             </div>

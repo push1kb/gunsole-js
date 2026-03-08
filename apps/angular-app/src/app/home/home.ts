@@ -105,8 +105,7 @@ export class Home {
       });
     } catch (err) {
       const totalTime = performance.now() - startTime;
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
 
       this.error.set(errorMessage);
 

@@ -9,7 +9,7 @@ export const GUNSOLE_SESSION_COOKIE = "gunsole_session";
  */
 export function persistSession(
   client: GunsoleClient,
-  cookieName: string = GUNSOLE_SESSION_COOKIE,
+  cookieName: string = GUNSOLE_SESSION_COOKIE
 ): string {
   if (typeof document === "undefined") {
     return client.getSessionId() ?? "";

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ name: string }> },
+  { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
   const gunsole = await getServerGunsole();
@@ -17,7 +17,7 @@ export async function GET(
 
   try {
     const response = await fetch(
-      `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`,
+      `https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`
     );
 
     if (!response.ok) {
@@ -29,7 +29,7 @@ export async function GET(
       await gunsole.flush();
       return NextResponse.json(
         { error: `Pokemon not found: ${name}` },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -57,7 +57,7 @@ export async function GET(
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

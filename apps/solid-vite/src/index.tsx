@@ -1,5 +1,3 @@
-/* @refresh reload */
-import { render } from "solid-js/web";
 import {
   ErrorComponent,
   RouterProvider,
@@ -7,6 +5,8 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/solid-router";
+/* @refresh reload */
+import { render } from "solid-js/web";
 import "./index.css";
 import App from "./App";
 import PokemonDetail from "./PokemonDetail";
