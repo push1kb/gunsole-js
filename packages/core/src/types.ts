@@ -9,7 +9,7 @@ export type FetchFunction = (
 /**
  * Log level enumeration
  */
-export type LogLevel = "info" | "debug" | "warn" | "error";
+export type LogLevel = "info" | "debug" | "warn" | "error" | "fatal";
 
 /**
  * Client mode determines the default endpoint
@@ -41,7 +41,7 @@ export type ReservedTagKey =
 export type ValidTagSchema = { [K in ReservedTagKey]?: never };
 
 /**
- * Options for logging methods (log, info, debug, warn, error)
+ * Options for logging methods (log, info, debug, warn, error, fatal)
  */
 export interface LogOptions<
   Tags extends Record<string, string> = Record<string, string>,
@@ -128,6 +128,8 @@ export interface GunsoleClientConfig {
   beforeSend?: (entry: InternalLogEntry) => InternalLogEntry | null;
   /** Lifecycle hooks */
   hooks?: GunsoleHooks;
+  /** Explicit session ID (overrides auto-generated UUID). Useful for server-side contexts where a session ID is read from a cookie. */
+  sessionId?: string;
 }
 
 /**

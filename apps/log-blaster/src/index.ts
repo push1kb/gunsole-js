@@ -39,6 +39,9 @@ async function main() {
       case "error":
         gunsole.error(opts);
         break;
+      case "fatal":
+        gunsole.fatal(opts);
+        break;
     }
 
     const levelStr = level.toUpperCase() as keyof typeof levelColors;

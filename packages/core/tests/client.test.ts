@@ -236,7 +236,7 @@ describe("Bucket methods", () => {
       buckets: ["auth"],
     });
 
-    const levels: LogLevel[] = ["info", "debug", "warn", "error"];
+    const levels: LogLevel[] = ["info", "debug", "warn", "error", "fatal"];
 
     for (const level of levels) {
       mockFetch.mockResolvedValueOnce({

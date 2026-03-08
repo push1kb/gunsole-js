@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
 import {
+  ErrorComponent,
   RouterProvider,
   createRootRoute,
   createRoute,
@@ -9,8 +10,21 @@ import {
 import "./index.css";
 import App from "./App";
 import PokemonDetail from "./PokemonDetail";
+import { gunsole } from "./gunsole";
 
-const rootRoute = createRootRoute();
+const rootRoute = createRootRoute({
+  errorComponent: ({ error }) => {
+    gunsole.fatal({
+      message: error.message,
+      bucket: "fatal",
+      context: {
+        name: error.name,
+        stack: error.stack,
+      },
+    });
+    return <ErrorComponent error={error} />;
+  },
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,

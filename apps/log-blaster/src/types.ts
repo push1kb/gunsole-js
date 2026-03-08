@@ -1,5 +1,5 @@
 interface LogEntry {
-  level: "info" | "debug" | "warn" | "error";
+  level: "info" | "debug" | "warn" | "error" | "fatal";
   bucket: string;
   message: string;
   context?: Record<string, unknown>;

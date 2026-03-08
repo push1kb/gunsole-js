@@ -1,24 +1,8 @@
 "use client";
 
-import { type GunsoleClient, createGunsoleClient } from "@gunsole/web";
+import { getClientGunsole } from "@/lib/gunsole-client";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-
-let gunsole: GunsoleClient | null = null;
-function getGunsole(): GunsoleClient {
-  if (!gunsole) {
-    gunsole = createGunsoleClient({
-      projectId: "test-project-nextjs",
-      apiKey: "test-api-key",
-      mode: "local",
-      env: "development",
-      appName: "Next.js App",
-      appVersion: "1.0.0",
-      defaultTags: { framework: "nextjs" },
-    });
-  }
-  return gunsole;
-}
 
 interface Pokemon {
   id: number;
@@ -43,7 +27,7 @@ export default function GunsoleTest() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getGunsole().log({
+    getClientGunsole().log({
       message: "App mounted",
       bucket: "app_lifecycle",
       context: { framework: "nextjs" },
@@ -51,7 +35,7 @@ export default function GunsoleTest() {
   }, []);
 
   useEffect(() => {
-    getGunsole().setUser({ id: userId, email: "user@example.com" });
+    getClientGunsole().setUser({ id: userId, email: "user@example.com" });
   }, [userId]);
 
   const fetchPokemon = useCallback(async () => {
@@ -62,7 +46,7 @@ export default function GunsoleTest() {
     setError(null);
     setPokemon(null);
 
-    getGunsole().info({
+    getClientGunsole().info({
       message: `Fetching Pokemon: ${pokemonName}`,
       bucket: "api_request",
       context: { pokemon: pokemonName },
@@ -71,9 +55,7 @@ export default function GunsoleTest() {
     });
 
     try {
-      const response = await fetch(
-        `https://pokeapi.co/api/v2/pokemon/${pokemonName.toLowerCase()}`
-      );
+      const response = await fetch(`/api/pokemon/${pokemonName.toLowerCase()}`);
       const fetchTime = performance.now() - startTime;
 
       if (!response.ok) {
@@ -85,7 +67,7 @@ export default function GunsoleTest() {
 
       setPokemon(data);
 
-      getGunsole().info({
+      getClientGunsole().info({
         message: `Pokemon fetched successfully: ${data.name}`,
         bucket: "api_request",
         context: {
@@ -99,12 +81,11 @@ export default function GunsoleTest() {
       });
     } catch (err) {
       const totalTime = performance.now() - startTime;
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
 
       setError(errorMessage);
 
-      getGunsole().error({
+      getClientGunsole().error({
         message: `Failed to fetch Pokemon: ${pokemonName}`,
         bucket: "api_request",
         context: {
@@ -130,30 +111,26 @@ export default function GunsoleTest() {
 
     switch (level) {
       case "info":
-        getGunsole().info(logOptions);
+        getClientGunsole().info(logOptions);
         break;
       case "debug":
-        getGunsole().debug(logOptions);
+        getClientGunsole().debug(logOptions);
         break;
       case "warn":
-        getGunsole().warn(logOptions);
+        getClientGunsole().warn(logOptions);
         break;
       case "error":
-        getGunsole().error(logOptions);
+        getClientGunsole().error(logOptions);
         break;
     }
   };
 
   const handleError = () => {
-    getGunsole().error({
-      message: "Test error logged",
-      bucket: "test_error",
-      context: { error: "This is a test error", stack: "test stack" },
-    });
+    throw new Error("Test error triggered by user");
   };
 
   const handleFlush = async () => {
-    await getGunsole().flush();
+    await getClientGunsole().flush();
     alert("Logs flushed!");
   };
 
@@ -241,7 +218,7 @@ export default function GunsoleTest() {
                 >
                   {name}
                 </button>
-              )
+              ),
             )}
           </div>
         </div>
@@ -250,10 +227,34 @@ export default function GunsoleTest() {
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <h2 className="text-xl font-semibold mb-4">Log Actions</h2>
           <div className="flex flex-wrap gap-3 justify-center">
-            <button type="button" onClick={() => handleLog("info")} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Log Info</button>
-            <button type="button" onClick={() => handleLog("debug")} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Log Debug</button>
-            <button type="button" onClick={() => handleLog("warn")} className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">Log Warn</button>
-            <button type="button" onClick={() => handleLog("error")} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Log Error</button>
+            <button
+              type="button"
+              onClick={() => handleLog("info")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Log Info
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLog("debug")}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Log Debug
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLog("warn")}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              Log Warn
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLog("error")}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Log Error
+            </button>
           </div>
         </div>
 
@@ -277,8 +278,20 @@ export default function GunsoleTest() {
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <h2 className="text-xl font-semibold mb-4">Actions</h2>
           <div className="flex flex-wrap gap-3 justify-center">
-            <button type="button" onClick={handleError} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Trigger Error</button>
-            <button type="button" onClick={handleFlush} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">Flush Logs</button>
+            <button
+              type="button"
+              onClick={handleError}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Trigger Error
+            </button>
+            <button
+              type="button"
+              onClick={handleFlush}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Flush Logs
+            </button>
           </div>
         </div>
       </div>

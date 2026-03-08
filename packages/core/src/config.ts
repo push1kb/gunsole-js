@@ -36,11 +36,12 @@ export function resolveEndpoint(
  */
 export function normalizeConfig(config: GunsoleClientConfig): Omit<
   Required<GunsoleClientConfig>,
-  "fetch" | "beforeSend"
+  "fetch" | "beforeSend" | "sessionId"
 > & {
   endpoint: string;
   fetch?: GunsoleClientConfig["fetch"];
   beforeSend?: GunsoleClientConfig["beforeSend"];
+  sessionId?: string;
 } {
   if (!config.projectId) {
     throw new Error("projectId is required");
@@ -84,5 +85,6 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
     maxBurst: config.maxBurst ?? 100,
     beforeSend: config.beforeSend,
     hooks: config.hooks ?? {},
+    sessionId: config.sessionId,
   };
 }

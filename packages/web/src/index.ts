@@ -7,6 +7,11 @@
  */
 
 export { createGunsoleClient } from "./factory";
+export { createGunsoleClient as createGunsole } from "./factory";
+export { createGunsoleClient as createGunsoleWeb } from "./factory";
+
+// Session persistence
+export { persistSession, GUNSOLE_SESSION_COOKIE } from "./session";
 
 // Low-level primitives for advanced users
 export { attachWebLifecycle } from "./lifecycle";

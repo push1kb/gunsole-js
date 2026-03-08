@@ -5,6 +5,7 @@ const levelColors = {
   DEBUG: chalk.gray,
   WARN: chalk.yellow,
   ERROR: chalk.red,
+  FATAL: chalk.redBright,
 } as const;
 
 const bucketColors = [

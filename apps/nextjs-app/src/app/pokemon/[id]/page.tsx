@@ -1,25 +1,9 @@
 "use client";
 
-import { type GunsoleClient, createGunsoleClient } from "@gunsole/web";
+import { getClientGunsole } from "@/lib/gunsole-client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-
-let gunsole: GunsoleClient | null = null;
-function getGunsole(): GunsoleClient {
-  if (!gunsole) {
-    gunsole = createGunsoleClient({
-      projectId: "test-project-nextjs",
-      apiKey: "test-api-key",
-      mode: "local",
-      env: "development",
-      appName: "Next.js App",
-      appVersion: "1.0.0",
-      defaultTags: { framework: "nextjs" },
-    });
-  }
-  return gunsole;
-}
 
 interface Pokemon {
   id: number;
@@ -49,7 +33,7 @@ export default function PokemonDetailPage() {
     setLoading(true);
     setError(null);
 
-    getGunsole().info({
+    getClientGunsole().info({
       message: `Fetching Pokemon detail: ${params.id}`,
       bucket: "api_request",
       context: { pokemonId: params.id },
@@ -67,7 +51,7 @@ export default function PokemonDetailPage() {
       const totalTime = performance.now() - startTime;
       setPokemon(data);
 
-      getGunsole().info({
+      getClientGunsole().info({
         message: `Pokemon detail fetched: ${data.name}`,
         bucket: "api_request",
         context: { pokemon: data.name, pokemonId: data.id, totalTimeMs: Math.round(totalTime) },
@@ -78,7 +62,7 @@ export default function PokemonDetailPage() {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
 
-      getGunsole().error({
+      getClientGunsole().error({
         message: `Failed to fetch Pokemon detail: ${params.id}`,
         bucket: "api_request",
         context: { pokemonId: params.id, error: errorMessage },

@@ -43,7 +43,7 @@ cd apps/log-blaster && pnpm start    # Node.js CLI stress-test tool
 
 ### Core Components (packages/core/src/)
 
-- **client.ts** - `GunsoleClient<Tags>` class: main API for logging (`log()`, `info()`, `debug()`, `warn()`, `error()`), user/session tracking, log batching, global error handler, `destroy()` lifecycle method
+- **client.ts** - `GunsoleClient<Tags>` class: main API for logging (`log()`, `info()`, `debug()`, `warn()`, `error()`, `fatal()`), user/session tracking, log batching, global error handler (uses `fatal` level), `destroy()` lifecycle method
 - **transport.ts** - HTTP layer with retry logic (exponential backoff, max 3 retries), gzip compression via native Compression Streams API (disabled when `isDebug: true`)
 - **config.ts** - Configuration validation and endpoint resolution by mode (cloud/desktop/local), supports custom `fetch` implementation
 - **factory.ts** - `createGunsoleClient<Tags>()` factory function

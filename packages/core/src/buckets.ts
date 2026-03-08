@@ -19,6 +19,7 @@ export interface BucketLogger<
   debug(message: string, options?: BucketLogOptions<Tags>): void;
   warn(message: string, options?: BucketLogOptions<Tags>): void;
   error(message: string, options?: BucketLogOptions<Tags>): void;
+  fatal(message: string, options?: BucketLogOptions<Tags>): void;
 }
 
 /**
@@ -38,6 +39,7 @@ export type ReservedBucketName =
   | "debug"
   | "warn"
   | "error"
+  | "fatal"
   | "setUser"
   | "setSessionId"
   | "setDebug"
@@ -64,6 +66,7 @@ const RESERVED_NAMES: Set<string> = new Set<ReservedBucketName>([
   "debug",
   "warn",
   "error",
+  "fatal",
   "setUser",
   "setSessionId",
   "setDebug",
@@ -104,6 +107,7 @@ function createBucketLogger<
   logger.debug = (message, options?) => logAtLevel("debug", message, options);
   logger.warn = (message, options?) => logAtLevel("warn", message, options);
   logger.error = (message, options?) => logAtLevel("error", message, options);
+  logger.fatal = (message, options?) => logAtLevel("fatal", message, options);
 
   return logger;
 }

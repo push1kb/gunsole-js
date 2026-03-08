@@ -157,11 +157,7 @@ export class Home {
   }
 
   protected handleError(): void {
-    gunsole.error({
-      message: "Test error logged",
-      bucket: "test_error",
-      context: { error: "This is a test error", stack: "test stack" },
-    });
+    throw new Error("Test error triggered by user");
   }
 
   protected async handleFlush(): Promise<void> {

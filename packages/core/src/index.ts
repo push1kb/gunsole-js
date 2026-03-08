@@ -7,6 +7,8 @@
  */
 
 export { createGunsoleClient } from "./factory";
+export { createGunsoleClient as createGunsole } from "./factory";
+export { createGunsoleClient as createGunsoleServer } from "./factory";
 export { GunsoleClient } from "./client";
 export { SDK_VERSION } from "./version";
 export type {

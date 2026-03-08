@@ -62,8 +62,7 @@ export class GunsoleClient<
       return;
     }
 
-    // Auto-generate session ID
-    this.sessionId = crypto.randomUUID();
+    this.sessionId = config.sessionId ?? crypto.randomUUID();
 
     // Set up rate limiter (0 = disabled)
     if (this.config.maxLogRate > 0) {
@@ -223,6 +222,13 @@ export class GunsoleClient<
   }
 
   /**
+   * Log a fatal-level message (unrecoverable errors)
+   */
+  fatal(options: LogOptions<Tags>): void {
+    this.log("fatal", options);
+  }
+
+  /**
    * Set user information
    */
   setUser(user: UserInfo): void {
@@ -230,6 +236,13 @@ export class GunsoleClient<
       return;
     }
     this.user = user;
+  }
+
+  /**
+   * Get current session ID
+   */
+  getSessionId(): string | null {
+    return this.sessionId;
   }
 
   /**
@@ -304,7 +317,7 @@ export class GunsoleClient<
       this.globalHandlers.unhandledRejection = (
         event: PromiseRejectionEvent
       ) => {
-        this.error({
+        this.fatal({
           message: "Unhandled promise rejection",
           bucket: "unhandled_rejection",
           context: {
@@ -323,7 +336,7 @@ export class GunsoleClient<
 
       // Global errors
       this.globalHandlers.error = (event: ErrorEvent) => {
-        this.error({
+        this.fatal({
           message: event.message || "Global error",
           bucket: "global_error",
           context: {
@@ -354,7 +367,7 @@ export class GunsoleClient<
           reason: unknown,
           _promise: Promise<unknown>
         ) => {
-          this.error({
+          this.fatal({
             message: "Unhandled promise rejection",
             bucket: "unhandled_rejection",
             context: {
@@ -372,7 +385,7 @@ export class GunsoleClient<
         };
 
         this.globalHandlers.uncaughtException = (error: Error) => {
-          this.error({
+          this.fatal({
             message: error.message,
             bucket: "uncaught_exception",
             context: {
