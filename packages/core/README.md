@@ -21,8 +21,7 @@ import { createGunsoleClient } from "@gunsole/core";
 
 const gunsole = createGunsoleClient({
   projectId: "your-project-id",
-  apiKey: "your-api-key",
-  mode: "cloud", // or "desktop" | "local"
+  mode: "desktop", // or "cloud" | "local"
   env: "production",
   appName: "my-app",
   appVersion: "1.0.0",
@@ -165,4 +164,3 @@ pnpm typecheck
 ## License
 
 MIT
-
