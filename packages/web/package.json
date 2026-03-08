@@ -1,6 +1,6 @@
 {
   "name": "@gunsole/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser lifecycle utilities for @gunsole/core",
   "type": "module",
   "sideEffects": false,
@@ -46,7 +46,7 @@
     "directory": "packages/web"
   },
   "peerDependencies": {
-    "@gunsole/core": ">=0.1.0",
+    "@gunsole/core": ">=0.2.0",
     "typescript": "^5.4.0"
   },
   "peerDependenciesMeta": {
