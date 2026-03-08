@@ -12,9 +12,7 @@ async function main() {
   console.log();
   console.log(chalk.bold("  ⚡ Log Blaster"));
   console.log(
-    chalk.dim(
-      `  ${logs.length} logs · ${buckets.length} buckets · mode: local`
-    )
+    chalk.dim(`  ${logs.length} logs · ${buckets.length} buckets · mode: local`)
   );
   if (delaySec > 0) {
     console.log(chalk.dim(`  delay: ${delaySec}s between logs`));
@@ -38,6 +36,9 @@ async function main() {
         break;
       case "error":
         gunsole.error(opts);
+        break;
+      case "fatal":
+        gunsole.fatal(opts);
         break;
     }
 

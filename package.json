@@ -17,7 +17,8 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "dev:apps": "pnpm --filter solid-vite dev --port 4001 & pnpm --filter react-vite dev --port 4002 & pnpm --filter angular-app start --port 4003 & pnpm --filter nextjs-app dev -p 4004 & wait"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -1,0 +1,52 @@
+<div class="app">
+  <div class="container">
+    <a routerLink="/" class="back-link">&larr; Back</a>
+
+    @if (loading()) {
+      <p class="loading-text">Loading...</p>
+    }
+
+    @if (error()) {
+      <p class="error-text">{{ error() }}</p>
+    }
+
+    @if (pokemon(); as p) {
+      <div class="detail-card">
+        <div class="sprite-row">
+          <div class="sprite-item">
+            <img [src]="p.sprites.front_default" alt="Default" class="pokemon-sprite" />
+            <span class="sprite-label">Default</span>
+          </div>
+          <div class="sprite-item">
+            <img [src]="p.sprites.front_shiny" alt="Shiny" class="pokemon-sprite" />
+            <span class="sprite-label">Shiny</span>
+          </div>
+        </div>
+
+        <h1 class="pokemon-name">{{ p.name }}</h1>
+
+        <div class="info-grid">
+          <p><strong>ID:</strong> #{{ p.id }}</p>
+          <p><strong>Base XP:</strong> {{ p.base_experience }}</p>
+          <p><strong>Height:</strong> {{ p.height / 10 }}m</p>
+          <p><strong>Weight:</strong> {{ p.weight / 10 }}kg</p>
+          <p><strong>Types:</strong> @for (t of p.types; track t.type.name) { {{ t.type.name }}@if (!$last) {, } }</p>
+          <p><strong>Abilities:</strong> {{ getAbilitiesText(p.abilities) }}</p>
+        </div>
+
+        <div class="stats">
+          <strong>Stats:</strong>
+          @for (s of p.stats; track s.stat.name) {
+            <div class="stat-row">
+              <span class="stat-name">{{ s.stat.name }}</span>
+              <div class="stat-bar-bg">
+                <div class="stat-bar" [style.width]="getStatWidth(s.base_stat)"></div>
+              </div>
+              <span class="stat-value">{{ s.base_stat }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

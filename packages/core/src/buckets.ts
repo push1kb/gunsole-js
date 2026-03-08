@@ -19,6 +19,7 @@ export interface BucketLogger<
   debug(message: string, options?: BucketLogOptions<Tags>): void;
   warn(message: string, options?: BucketLogOptions<Tags>): void;
   error(message: string, options?: BucketLogOptions<Tags>): void;
+  fatal(message: string, options?: BucketLogOptions<Tags>): void;
 }
 
 /**
@@ -38,10 +39,17 @@ export type ReservedBucketName =
   | "debug"
   | "warn"
   | "error"
+  | "fatal"
   | "setUser"
   | "setSessionId"
+  | "setDebug"
   | "flush"
   | "destroy"
+  | "isDestroyed"
+  | "drainBatch"
+  | "projectId"
+  | "apiKey"
+  | "logEndpoint"
   | "attachGlobalErrorHandlers"
   | "detachGlobalErrorHandlers";
 
@@ -58,10 +66,17 @@ const RESERVED_NAMES: Set<string> = new Set<ReservedBucketName>([
   "debug",
   "warn",
   "error",
+  "fatal",
   "setUser",
   "setSessionId",
+  "setDebug",
   "flush",
   "destroy",
+  "isDestroyed",
+  "drainBatch",
+  "projectId",
+  "apiKey",
+  "logEndpoint",
   "attachGlobalErrorHandlers",
   "detachGlobalErrorHandlers",
 ]);
@@ -92,6 +107,7 @@ function createBucketLogger<
   logger.debug = (message, options?) => logAtLevel("debug", message, options);
   logger.warn = (message, options?) => logAtLevel("warn", message, options);
   logger.error = (message, options?) => logAtLevel("error", message, options);
+  logger.fatal = (message, options?) => logAtLevel("fatal", message, options);
 
   return logger;
 }
@@ -112,8 +128,10 @@ export function attachBuckets<
         `Bucket name "${name}" conflicts with a reserved GunsoleClient method`
       );
     }
-    (client as unknown as Record<string, unknown>)[name] =
-      createBucketLogger(client, name);
+    (client as unknown as Record<string, unknown>)[name] = createBucketLogger(
+      client,
+      name
+    );
   }
   return client as GunsoleClient<Tags> & WithBuckets<Tags, Buckets>;
 }

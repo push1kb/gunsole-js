@@ -2,12 +2,20 @@ import { normalizeConfig } from "./config";
 import { Transport } from "./transport";
 import type {
   GunsoleClientConfig,
+  GunsoleHooks,
   InternalLogEntry,
   LogLevel,
   LogOptions,
   UserInfo,
   ValidTagSchema,
 } from "./types";
+import { isDev } from "./utils/env";
+import { TokenBucket } from "./utils/rate-limiter";
+
+/**
+ * Maximum number of flush attempts before dropping a log entry
+ */
+const MAX_FLUSH_ATTEMPTS = 10;
 
 /**
  * Global error handler state
@@ -24,10 +32,7 @@ interface GlobalErrorHandlers {
  * Gunsole client for sending logs and events
  */
 export class GunsoleClient<
-  Tags extends Record<string, string> & ValidTagSchema = Record<
-    string,
-    string
-  >,
+  Tags extends Record<string, string> & ValidTagSchema = Record<string, string>,
 > {
   private config: ReturnType<typeof normalizeConfig>;
   private transport: Transport;
@@ -37,23 +42,85 @@ export class GunsoleClient<
   private sessionId: string | null = null;
   private globalHandlers: GlobalErrorHandlers = { attached: false };
   private readonly disabled: boolean;
+  private destroyed = false;
+  #isDebug: boolean;
+  private rateLimiter: TokenBucket | null = null;
 
   constructor(config: GunsoleClientConfig) {
     this.config = normalizeConfig(config);
     this.disabled = config.isDisabled ?? false;
+    this.#isDebug = this.config.isDebug;
     this.transport = new Transport(
       this.config.endpoint,
       this.config.apiKey,
       this.config.projectId,
       this.config.fetch,
-      config.isDebug ?? false
+      () => this.#shouldDebug()
     );
 
     if (this.disabled) {
       return;
     }
 
+    this.sessionId = config.sessionId ?? crypto.randomUUID();
+
+    // Set up rate limiter (0 = disabled)
+    if (this.config.maxLogRate > 0) {
+      this.rateLimiter = new TokenBucket(
+        this.config.maxBurst,
+        this.config.maxLogRate
+      );
+    }
+
     this.startFlushTimer();
+  }
+
+  /**
+   * Whether this client has been destroyed
+   */
+  get isDestroyed(): boolean {
+    return this.destroyed;
+  }
+
+  /**
+   * Read-only project ID
+   */
+  get projectId(): string {
+    return this.config.projectId;
+  }
+
+  /**
+   * Read-only API key
+   */
+  get apiKey(): string {
+    return this.config.apiKey;
+  }
+
+  /**
+   * Read-only log endpoint URL
+   */
+  get logEndpoint(): string {
+    return `${this.config.endpoint}/logs`;
+  }
+
+  /**
+   * Atomically drain and return all pending log entries
+   */
+  drainBatch(): InternalLogEntry[] {
+    const entries = this.batch;
+    this.batch = [];
+    return entries;
+  }
+
+  /**
+   * Enable or disable debug mode at runtime
+   */
+  setDebug(enabled: boolean): void {
+    this.#isDebug = enabled;
+  }
+
+  #shouldDebug(): boolean {
+    return this.#isDebug || isDev();
   }
 
   /**
@@ -65,22 +132,36 @@ export class GunsoleClient<
     levelOrOptions: LogLevel | LogOptions<Tags>,
     maybeOptions?: LogOptions<Tags>
   ): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
     const level: LogLevel =
       typeof levelOrOptions === "string" ? levelOrOptions : "info";
-    const options: LogOptions<Tags> =
-      typeof levelOrOptions === "string" ? maybeOptions! : levelOrOptions;
+    const options: LogOptions<Tags> | undefined =
+      typeof levelOrOptions === "string" ? maybeOptions : levelOrOptions;
+
+    // ? This will never be undefined, it is just a type assertion
+    if (!options) {
+      return;
+    }
+
+    // Rate limiting check
+    if (this.rateLimiter && !this.rateLimiter.tryConsume()) {
+      if (this.#shouldDebug()) {
+        console.warn("[Gunsole] Log dropped: rate limit exceeded");
+      }
+      return;
+    }
+
     try {
-      const internalEntry: InternalLogEntry = {
+      let internalEntry: InternalLogEntry = {
         level,
         bucket: options.bucket,
         message: options.message,
         context: options.context,
         timestamp: Date.now(),
         traceId: options.traceId,
-        userId: this.user?.id,
+        userId: options.userId ?? this.user?.id,
         sessionId: this.sessionId ?? undefined,
         env: this.config.env || undefined,
         appName: this.config.appName || undefined,
@@ -93,17 +174,31 @@ export class GunsoleClient<
         },
       };
 
+      // beforeSend hook
+      if (this.config.beforeSend) {
+        try {
+          const result = this.config.beforeSend(internalEntry);
+          if (result === null) {
+            return;
+          }
+          internalEntry = result;
+        } catch {
+          // Keep original entry on throw
+        }
+      }
+
       this.batch.push(internalEntry);
+      this.enforceQueueCap();
+
+      // onLog hook
+      this.#invokeHook("onLog", internalEntry);
 
       // Flush if batch is full
       if (this.batch.length >= this.config.batchSize) {
         this.flush();
       }
-    } catch (error) {
-      // Silently swallow errors - never crash the host app
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in log():", error);
-      }
+    } catch {
+      // Silently swallow — never crash the host app
     }
   }
 
@@ -127,35 +222,37 @@ export class GunsoleClient<
   }
 
   /**
+   * Log a fatal-level message (unrecoverable errors)
+   */
+  fatal(options: LogOptions<Tags>): void {
+    this.log("fatal", options);
+  }
+
+  /**
    * Set user information
    */
   setUser(user: UserInfo): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
-    try {
-      this.user = user;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in setUser():", error);
-      }
-    }
+    this.user = user;
+  }
+
+  /**
+   * Get current session ID
+   */
+  getSessionId(): string | null {
+    return this.sessionId;
   }
 
   /**
    * Set session ID
    */
   setSessionId(sessionId: string): void {
-    if (this.disabled) {
+    if (this.disabled || this.destroyed) {
       return;
     }
-    try {
-      this.sessionId = sessionId;
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[Gunsole] Error in setSessionId():", error);
-      }
-    }
+    this.sessionId = sessionId;
   }
 
   /**
@@ -165,18 +262,40 @@ export class GunsoleClient<
     if (this.disabled) {
       return;
     }
+    const logsToSend = [...this.batch];
+    if (logsToSend.length === 0) {
+      return;
+    }
+    this.batch = [];
+
+    // Increment flush attempt counter on each entry
+    for (const entry of logsToSend) {
+      entry._flushAttempts = (entry._flushAttempts ?? 0) + 1;
+    }
+
     try {
-      if (this.batch.length === 0) {
-        return;
+      await this.transport.sendBatch(logsToSend);
+      this.#invokeHook("onFlush", logsToSend, true);
+    } catch (error) {
+      this.#invokeHook("onFlush", logsToSend, false);
+      this.#invokeHook("onError", error);
+
+      // Filter out entries that have exceeded the retry cap
+      const retriable = logsToSend.filter(
+        (entry) => (entry._flushAttempts ?? 0) < MAX_FLUSH_ATTEMPTS
+      );
+      const dropped = logsToSend.length - retriable.length;
+
+      if (dropped > 0 && this.#shouldDebug()) {
+        console.warn(
+          `[Gunsole] Dropped ${dropped} log(s) after ${MAX_FLUSH_ATTEMPTS} flush attempts`
+        );
       }
 
-      const logsToSend = [...this.batch];
-      this.batch = [];
-
-      await this.transport.sendBatch(logsToSend);
-    } catch (error) {
-      // Silently swallow errors
-      if (process.env.NODE_ENV === "development") {
+      // Re-queue surviving logs so they can be retried on next flush
+      this.batch.unshift(...retriable);
+      this.enforceQueueCap();
+      if (this.#shouldDebug()) {
         console.warn("[Gunsole] Error in flush():", error);
       }
     }
@@ -198,7 +317,7 @@ export class GunsoleClient<
       this.globalHandlers.unhandledRejection = (
         event: PromiseRejectionEvent
       ) => {
-        this.error({
+        this.fatal({
           message: "Unhandled promise rejection",
           bucket: "unhandled_rejection",
           context: {
@@ -217,7 +336,7 @@ export class GunsoleClient<
 
       // Global errors
       this.globalHandlers.error = (event: ErrorEvent) => {
-        this.error({
+        this.fatal({
           message: event.message || "Global error",
           bucket: "global_error",
           context: {
@@ -248,7 +367,7 @@ export class GunsoleClient<
           reason: unknown,
           _promise: Promise<unknown>
         ) => {
-          this.error({
+          this.fatal({
             message: "Unhandled promise rejection",
             bucket: "unhandled_rejection",
             context: {
@@ -266,7 +385,7 @@ export class GunsoleClient<
         };
 
         this.globalHandlers.uncaughtException = (error: Error) => {
-          this.error({
+          this.fatal({
             message: error.message,
             bucket: "uncaught_exception",
             context: {
@@ -285,7 +404,7 @@ export class GunsoleClient<
 
       this.globalHandlers.attached = true;
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
+      if (this.#shouldDebug()) {
         console.warn("[Gunsole] Error in attachGlobalErrorHandlers():", error);
       }
     }
@@ -329,9 +448,37 @@ export class GunsoleClient<
 
       this.globalHandlers = { attached: false };
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
+      if (this.#shouldDebug()) {
         console.warn("[Gunsole] Error in detachGlobalErrorHandlers():", error);
       }
+    }
+  }
+
+  /**
+   * Invoke a hook safely (never throws)
+   */
+  #invokeHook<K extends keyof GunsoleHooks>(
+    name: K,
+    ...args: Parameters<NonNullable<GunsoleHooks[K]>>
+  ): void {
+    try {
+      const hook = this.config.hooks[name];
+      if (hook) {
+        // biome-ignore lint/suspicious/noExplicitAny: hook signatures vary
+        (hook as any)(...args);
+      }
+    } catch {
+      // Hooks must never crash the SDK
+    }
+  }
+
+  /**
+   * Drop oldest entries when the queue exceeds maxQueueSize
+   */
+  private enforceQueueCap(): void {
+    const overflow = this.batch.length - this.config.maxQueueSize;
+    if (overflow > 0) {
+      this.batch.splice(0, overflow);
     }
   }
 
@@ -362,8 +509,14 @@ export class GunsoleClient<
    * Cleanup resources. Awaiting ensures remaining logs are flushed.
    */
   async destroy(): Promise<void> {
+    if (this.destroyed) {
+      return;
+    }
     this.stopFlushTimer();
     this.detachGlobalErrorHandlers();
     await this.flush();
+    this.user = null;
+    this.sessionId = null;
+    this.destroyed = true;
   }
 }

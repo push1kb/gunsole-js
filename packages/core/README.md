@@ -32,16 +32,14 @@ const gunsole = createGunsoleClient({
 ### Logging
 
 ```typescript
-// Simple log
+// Simple log (defaults to info level)
 gunsole.log({
-  level: "info",
   bucket: "user_action",
   message: "User clicked button",
 });
 
-// Log with context and tags
-gunsole.log({
-  level: "error",
+// Log with explicit level
+gunsole.log("error", {
   bucket: "api_error",
   message: "Failed to fetch user data",
   context: {
@@ -86,6 +84,12 @@ gunsole.attachGlobalErrorHandlers();
 gunsole.detachGlobalErrorHandlers();
 ```
 
+The global error handlers log to the following built-in buckets:
+
+- `unhandled_rejection` — unhandled promise rejections (browser and Node.js)
+- `global_error` — uncaught errors via `window.onerror` (browser only)
+- `uncaught_exception` — uncaught exceptions via `process.on('uncaughtException')` (Node.js only)
+
 ### Manual Flush
 
 ```typescript
@@ -111,8 +115,10 @@ await gunsole.flush();
 - `appName` (optional): Application name
 - `appVersion` (optional): Application version
 - `defaultTags` (optional): Default tags applied to all logs
-- `batchSize` (optional): Number of logs to batch before sending (default: 10)
-- `flushInterval` (optional): Auto-flush interval in ms (default: 5000)
+- `batchSize` (optional): Number of logs to batch before sending (default: 10, min: 1)
+- `flushInterval` (optional): Auto-flush interval in ms (default: 5000, min: 100)
+- `buckets` (optional): Array of bucket names to generate typed accessor methods (e.g., `["payment", "auth"]`)
+- `fetch` (optional): Custom `fetch` implementation (default: global `fetch`; requires Node.js 18+)
 
 ### Cleanup
 

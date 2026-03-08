@@ -9,7 +9,7 @@ export type FetchFunction = (
 /**
  * Log level enumeration
  */
-export type LogLevel = "info" | "debug" | "warn" | "error";
+export type LogLevel = "info" | "debug" | "warn" | "error" | "fatal";
 
 /**
  * Client mode determines the default endpoint
@@ -41,7 +41,7 @@ export type ReservedTagKey =
 export type ValidTagSchema = { [K in ReservedTagKey]?: never };
 
 /**
- * Options for logging methods (log, info, debug, warn, error)
+ * Options for logging methods (log, info, debug, warn, error, fatal)
  */
 export interface LogOptions<
   Tags extends Record<string, string> = Record<string, string>,
@@ -56,24 +56,8 @@ export interface LogOptions<
   tags?: Partial<Tags> | TagEntry<Tags>[];
   /** Trace ID for distributed tracing */
   traceId?: string;
-}
-
-/**
- * Log entry structure
- */
-export interface LogEntry {
-  /** Bucket/category for the log */
-  bucket: string;
-  /** Human-readable message */
-  message: string;
-  /** Additional context data */
-  context?: Record<string, unknown>;
-  /** Tags for filtering/grouping */
-  tags?: Record<string, string>;
-  /** Timestamp (Unix milliseconds, SDK fills if not provided) */
-  timestamp?: number;
-  /** Trace ID for distributed tracing */
-  traceId?: string;
+  /** Per-call user ID override (useful for server-side contexts) */
+  userId?: string;
 }
 
 /**
@@ -88,6 +72,18 @@ export interface UserInfo {
   name?: string;
   /** Additional user traits */
   traits?: Record<string, unknown>;
+}
+
+/**
+ * Lifecycle hooks for the Gunsole client
+ */
+export interface GunsoleHooks {
+  /** Called after a log entry is added to the batch */
+  onLog?: (entry: InternalLogEntry) => void;
+  /** Called after a flush attempt (success or failure) */
+  onFlush?: (logs: InternalLogEntry[], success: boolean) => void;
+  /** Called when a flush error occurs */
+  onError?: (error: unknown) => void;
 }
 
 /**
@@ -116,12 +112,24 @@ export interface GunsoleClientConfig {
   flushInterval?: number;
   /** Custom fetch implementation (default: uses global fetch or throws error) */
   fetch?: FetchFunction;
-  /** Debug mode - when true, disables gzip compression for readable network payloads */
-  isDebug?: boolean;
+  /** Maximum number of log entries held in the queue (default: 1000). Oldest entries are dropped when exceeded. */
+  maxQueueSize?: number;
   /** When true, all SDK methods become no-ops. Useful for disabling in specific environments. */
   isDisabled?: boolean;
   /** Typed bucket names for bucket accessor methods */
   buckets?: readonly string[];
+  /** Enable debug mode (disables gzip, enables console warnings). Defaults to isDev() check. */
+  isDebug?: boolean;
+  /** Maximum log rate per second (default: 10, 0 to disable) */
+  maxLogRate?: number;
+  /** Maximum burst size for rate limiting (default: 100) */
+  maxBurst?: number;
+  /** Transform or filter log entries before batching. Return null to drop. */
+  beforeSend?: (entry: InternalLogEntry) => InternalLogEntry | null;
+  /** Lifecycle hooks */
+  hooks?: GunsoleHooks;
+  /** Explicit session ID (overrides auto-generated UUID). Useful for server-side contexts where a session ID is read from a cookie. */
+  sessionId?: string;
 }
 
 /**
@@ -152,6 +160,8 @@ export interface InternalLogEntry {
   appName?: string;
   /** Application version */
   appVersion?: string;
+  /** @internal */
+  _flushAttempts?: number;
 }
 
 /**

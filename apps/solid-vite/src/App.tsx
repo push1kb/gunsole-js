@@ -1,16 +1,9 @@
-import { createGunsoleClient } from "@gunsole/core";
-import { createSignal, onCleanup, onMount, Show, For } from "solid-js";
+import { Link } from "@tanstack/solid-router";
+import { For, Show, createSignal, onMount } from "solid-js";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
-
-const gunsole = createGunsoleClient({
-  projectId: "test-project-solid",
-  apiKey: "test-api-key",
-  mode: "local",
-  env: "development",
-  appName: "Solid Vite App",
-  appVersion: "1.0.0",
-  defaultTags: { framework: "solid", bundler: "vite" },
-});
+import gunsoleLogo from "./assets/gunsole.svg";
+import solidLogo from "./assets/solid.svg";
+import { gunsole } from "./gunsole";
 
 interface Pokemon {
   id: number;
@@ -47,7 +40,6 @@ function getRating(
 
 function App() {
   const [userId, setUserId] = createSignal("user-123");
-  const [sessionId, setSessionId] = createSignal("session-abc");
   const [pokemonName, setPokemonName] = createSignal("pikachu");
   const [pokemon, setPokemon] = createSignal<Pokemon | null>(null);
   const [loading, setLoading] = createSignal(false);
@@ -56,7 +48,6 @@ function App() {
   const suggestions = ["charizard", "mewtwo", "gengar", "eevee", "snorlax"];
 
   onMount(() => {
-    // Report web vitals
     const reportVital = (metric: {
       name: string;
       value: number;
@@ -82,19 +73,12 @@ function App() {
     onTTFB(reportVital);
 
     gunsole.setUser({ id: userId(), email: "user@example.com" });
-    gunsole.setSessionId(sessionId());
-    gunsole.attachGlobalErrorHandlers();
 
     gunsole.log({
       message: "App mounted",
       bucket: "app_lifecycle",
       context: { framework: "solid" },
     });
-  });
-
-  onCleanup(() => {
-    gunsole.detachGlobalErrorHandlers();
-    gunsole.flush();
   });
 
   const fetchPokemon = async () => {
@@ -137,7 +121,6 @@ function App() {
           pokemonId: data.id,
           fetchTimeMs: Math.round(fetchTime),
           totalTimeMs: Math.round(totalTime),
-          responseSize: JSON.stringify(data).length,
         },
         tags: { api: "pokeapi", action: "fetch_success", status: "200" },
         traceId,
@@ -200,6 +183,10 @@ function App() {
   return (
     <div class="min-h-screen bg-zinc-900 text-white p-8">
       <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-center gap-4 mb-6">
+          <img src={gunsoleLogo} alt="Gunsole" class="h-12 w-12" />
+          <img src={solidLogo} alt="Solid" class="h-10 w-10" />
+        </div>
         <h1 class="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
           Gunsole JS - Solid + Vite
         </h1>
@@ -259,6 +246,14 @@ function App() {
                         .join(", ")}
                     </p>
                   </div>
+
+                  <Link
+                    to="/pokemon/$pokemonId"
+                    params={{ pokemonId: String(p().id) }}
+                    class="mt-4 inline-block px-4 py-1.5 text-sm bg-indigo-500/20 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg transition-colors"
+                  >
+                    More Details
+                  </Link>
                 </div>
               )}
             </Show>
@@ -314,9 +309,9 @@ function App() {
             </div>
           </section>
 
-          {/* User & Session */}
+          {/* User */}
           <section class="bg-zinc-800 rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4">User & Session</h2>
+            <h2 class="text-xl font-semibold mb-4">User</h2>
             <div class="grid gap-4 max-w-sm mx-auto">
               <label class="block">
                 <span class="text-zinc-300 text-sm">User ID</span>
@@ -324,15 +319,6 @@ function App() {
                   type="text"
                   value={userId()}
                   onInput={(e) => setUserId(e.currentTarget.value)}
-                  class="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </label>
-              <label class="block">
-                <span class="text-zinc-300 text-sm">Session ID</span>
-                <input
-                  type="text"
-                  value={sessionId()}
-                  onInput={(e) => setSessionId(e.currentTarget.value)}
                   class="mt-1 w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </label>

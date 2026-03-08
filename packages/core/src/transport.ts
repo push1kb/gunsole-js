@@ -1,5 +1,6 @@
-import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types.js";
-import { getFetch } from "./utils/env.js";
+import type { BatchPayload, FetchFunction, InternalLogEntry } from "./types";
+import { getFetch } from "./utils/env";
+import { SDK_VERSION } from "./version";
 
 /**
  * Maximum number of retry attempts
@@ -12,10 +13,17 @@ const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
 /**
+ * Timeout for each fetch request (milliseconds)
+ */
+const REQUEST_TIMEOUT_MS = 30_000;
+
+/**
  * Calculate exponential backoff delay
  */
 function calculateBackoffDelay(attempt: number): number {
-  return BASE_DELAY_MS * 2 ** attempt;
+  const base = BASE_DELAY_MS * 2 ** attempt;
+  const jitter = 0.5 + Math.random();
+  return Math.round(base * jitter);
 }
 
 /**
@@ -37,22 +45,6 @@ async function gzipCompress(input: string): Promise<Uint8Array> {
 }
 
 /**
- * Minify and optionally compress payload
- */
-async function compressPayload(
-  payload: BatchPayload,
-  isDebug: boolean
-): Promise<string | Uint8Array> {
-  const minified = JSON.stringify(payload);
-
-  if (isDebug) {
-    return minified;
-  }
-
-  return gzipCompress(minified);
-}
-
-/**
  * Transport layer for sending logs to the Gunsole API
  */
 export class Transport {
@@ -60,20 +52,20 @@ export class Transport {
   private apiKey: string;
   private projectId: string;
   private fetch: FetchFunction;
-  private isDebug: boolean;
+  private isDebugFn: () => boolean;
 
   constructor(
     endpoint: string,
     apiKey: string,
     projectId: string,
     fetch?: FetchFunction,
-    isDebug = false
+    isDebugFn?: () => boolean
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
     this.projectId = projectId;
     this.fetch = fetch ?? getFetch();
-    this.isDebug = isDebug;
+    this.isDebugFn = isDebugFn ?? (() => false);
   }
 
   /**
@@ -87,61 +79,88 @@ export class Transport {
 
     const payload: BatchPayload = {
       projectId: this.projectId,
-      logs,
+      logs: logs.map(({ _flushAttempts: _, ...rest }) => rest),
     };
 
-    let lastError: Error | null = null;
+    const debug = this.isDebugFn();
+    let lastError: unknown;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        const body = await compressPayload(payload, this.isDebug);
+        const json = JSON.stringify(payload, (_key, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        );
+
+        let body: BodyInit;
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
+          "X-Gunsole-SDK-Version": SDK_VERSION,
         };
 
-        if (this.apiKey) {
-          headers["Authorization"] = `Bearer ${this.apiKey}`;
-        }
-
-        // Only set Content-Encoding if not in debug mode
-        if (!this.isDebug) {
+        if (debug) {
+          body = json;
+        } else {
+          body = (await gzipCompress(json)) as BodyInit;
           headers["Content-Encoding"] = "gzip";
         }
 
-        const response = await this.fetch(`${this.endpoint}/logs`, {
-          method: "POST",
-          headers,
-          body: body as BodyInit,
-        });
+        if (this.apiKey) {
+          headers.Authorization = `Bearer ${this.apiKey}`;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+          () => controller.abort(),
+          REQUEST_TIMEOUT_MS
+        );
+
+        let response: Response;
+        try {
+          response = await this.fetch(`${this.endpoint}/logs`, {
+            method: "POST",
+            headers,
+            body,
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         if (response.ok) {
-          return; // Success
+          return;
         }
 
-        // Non-2xx response
-        const errorText = await response.text().catch(() => "Unknown error");
-        lastError = new Error(`HTTP ${response.status}: ${errorText}`);
+        // HTTP 413: payload too large — split and retry
+        if (response.status === 413) {
+          if (logs.length > 1) {
+            const mid = Math.ceil(logs.length / 2);
+            await this.sendBatch(logs.slice(0, mid));
+            await this.sendBatch(logs.slice(mid));
+          }
+          // Single entry too large — silently drop
+          return;
+        }
 
         // Don't retry client errors (4xx) except 429 (rate limited)
-        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-          break;
+        if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          return;
         }
+
+        lastError = new Error(`HTTP ${response.status}`);
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = error;
       }
 
-      // If not the last attempt, wait before retrying
       if (attempt < MAX_RETRIES - 1) {
         const delay = calculateBackoffDelay(attempt);
         await sleep(delay);
       }
     }
 
-    // All retries failed - silently swallow the error
-    // This ensures the SDK never crashes the host application
-    // In production, you might want to log this to console in debug mode
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[Gunsole] Failed to send logs after retries:", lastError);
-    }
+    throw lastError;
   }
 }

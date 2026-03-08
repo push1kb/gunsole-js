@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeConfig, resolveEndpoint } from "../src/config.js";
+import { normalizeConfig, resolveEndpoint } from "../src/config";
 
 describe("resolveEndpoint", () => {
   it("should return cloud endpoint", () => {
@@ -23,9 +23,9 @@ describe("resolveEndpoint", () => {
 
 describe("normalizeConfig", () => {
   it("should throw if projectId is missing", () => {
-    expect(() =>
-      normalizeConfig({ projectId: "", mode: "cloud" })
-    ).toThrow("projectId is required");
+    expect(() => normalizeConfig({ projectId: "", mode: "cloud" })).toThrow(
+      "projectId is required"
+    );
   });
 
   it("should apply default values", () => {
@@ -40,7 +40,6 @@ describe("normalizeConfig", () => {
     expect(config.appVersion).toBe("");
     expect(config.batchSize).toBe(10);
     expect(config.flushInterval).toBe(5000);
-    expect(config.isDebug).toBe(false);
     expect(config.defaultTags).toEqual({});
     expect(config.buckets).toEqual([]);
   });
@@ -72,7 +71,6 @@ describe("normalizeConfig", () => {
       appVersion: "2.0.0",
       batchSize: 50,
       flushInterval: 10000,
-      isDebug: true,
       defaultTags: { team: "backend" },
       buckets: ["auth", "payment"],
     });
@@ -84,8 +82,65 @@ describe("normalizeConfig", () => {
     expect(config.appVersion).toBe("2.0.0");
     expect(config.batchSize).toBe(50);
     expect(config.flushInterval).toBe(10000);
-    expect(config.isDebug).toBe(true);
     expect(config.defaultTags).toEqual({ team: "backend" });
     expect(config.buckets).toEqual(["auth", "payment"]);
+  });
+
+  it("should throw if batchSize is less than 1", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: 0 })
+    ).toThrow("batchSize must be at least 1");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: -5 })
+    ).toThrow("batchSize must be at least 1");
+  });
+
+  it("should throw if flushInterval is less than 100ms", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 0 })
+    ).toThrow("flushInterval must be at least 100ms");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 50 })
+    ).toThrow("flushInterval must be at least 100ms");
+  });
+
+  it("should accept valid batchSize and flushInterval", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+      batchSize: 1,
+      flushInterval: 100,
+    });
+    expect(config.batchSize).toBe(1);
+    expect(config.flushInterval).toBe(100);
+  });
+
+  it("should default maxQueueSize to 1000", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+    });
+    expect(config.maxQueueSize).toBe(1000);
+  });
+
+  it("should pass through custom maxQueueSize", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "cloud",
+      maxQueueSize: 500,
+    });
+    expect(config.maxQueueSize).toBe(500);
+  });
+
+  it("should throw if maxQueueSize is less than 1", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: 0 })
+    ).toThrow("maxQueueSize must be at least 1");
+
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: -5 })
+    ).toThrow("maxQueueSize must be at least 1");
   });
 });

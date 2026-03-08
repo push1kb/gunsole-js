@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { getFetch, isBrowser, isNode } from "../src/utils/env.js";
+import { describe, expect, it, vi } from "vitest";
+import { getFetch, isBrowser, isNode } from "../src/utils/env";
 
 describe("isNode", () => {
   it("should return true in Node.js environment", () => {
@@ -23,5 +23,35 @@ describe("getFetch", () => {
   it("should return globalThis.fetch in Node.js 18+", () => {
     const result = getFetch();
     expect(result).toBe(globalThis.fetch);
+  });
+
+  it("should fall back to globalThis.fetch in edge runtimes", async () => {
+    const fakeFetch = vi.fn();
+    vi.stubGlobal("process", undefined);
+    vi.stubGlobal("window", undefined);
+    vi.stubGlobal("fetch", fakeFetch);
+
+    vi.resetModules();
+    const { getFetch: freshGetFetch } = await import("../src/utils/env");
+
+    const result = freshGetFetch();
+    expect(result).toBe(fakeFetch);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("should throw when fetch is unavailable everywhere", async () => {
+    vi.stubGlobal("process", undefined);
+    vi.stubGlobal("window", undefined);
+    vi.stubGlobal("fetch", undefined);
+
+    vi.resetModules();
+    const { getFetch: freshGetFetch } = await import("../src/utils/env");
+
+    expect(() => freshGetFetch()).toThrow(
+      "Unsupported environment: fetch is not available"
+    );
+
+    vi.unstubAllGlobals();
   });
 });

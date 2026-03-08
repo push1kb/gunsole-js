@@ -1,0 +1,87 @@
+<div class="app">
+  <div class="container">
+    <div class="logo-row">
+      <img src="gunsole.svg" alt="Gunsole" class="logo" />
+      <img src="angular.svg" alt="Angular" class="logo logo-sm" />
+    </div>
+    <h1>Gunsole JS - Angular</h1>
+
+    <div class="sections">
+      <!-- Pokemon Search -->
+      <section class="section">
+        <h2>Pokemon Search</h2>
+        <div class="search-row">
+          <input
+            type="text"
+            [value]="pokemonName()"
+            (input)="pokemonName.set($any($event.target).value)"
+            (keydown)="onSearchKeydown($event)"
+            placeholder="Enter Pokemon name..."
+          />
+          <button class="btn-indigo" [disabled]="loading()" (click)="fetchPokemon()">
+            {{ loading() ? 'Loading...' : 'Fetch' }}
+          </button>
+        </div>
+
+        @if (error()) {
+          <p class="error-text">{{ error() }}</p>
+        }
+
+        @if (pokemon(); as p) {
+          <div class="pokemon-card">
+            <img [src]="p.sprites.front_default" [alt]="p.name" class="pokemon-sprite" />
+            <h3 class="pokemon-name">{{ p.name }}</h3>
+            <div class="pokemon-info">
+              <p><strong>ID:</strong> #{{ p.id }}</p>
+              <p><strong>Height:</strong> {{ p.height / 10 }}m</p>
+              <p><strong>Weight:</strong> {{ p.weight / 10 }}kg</p>
+              <p><strong>Types:</strong> @for (t of p.types; track t.type.name) { {{ t.type.name }}@if (!$last) {, } }</p>
+            </div>
+
+            <a [routerLink]="['/pokemon', p.id]" class="btn-detail">
+              More Details
+            </a>
+          </div>
+        }
+
+        <div class="suggestions">
+          <span class="suggestions-label">Try:</span>
+          @for (name of suggestions; track name) {
+            <button class="btn-suggestion" (click)="pokemonName.set(name)">{{ name }}</button>
+          }
+        </div>
+      </section>
+
+      <!-- Log Actions -->
+      <section class="section">
+        <h2>Log Actions</h2>
+        <div class="button-group">
+          <button class="btn-blue" (click)="handleLog('info')">Log Info</button>
+          <button class="btn-gray" (click)="handleLog('debug')">Log Debug</button>
+          <button class="btn-yellow" (click)="handleLog('warn')">Log Warn</button>
+          <button class="btn-red" (click)="handleLog('error')">Log Error</button>
+        </div>
+      </section>
+
+      <!-- User -->
+      <section class="section">
+        <h2>User</h2>
+        <div class="input-group">
+          <label>
+            <span>User ID</span>
+            <input type="text" [value]="userId()" (input)="userId.set($any($event.target).value)" />
+          </label>
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <section class="section">
+        <h2>Actions</h2>
+        <div class="button-group">
+          <button class="btn-red" (click)="handleError()">Trigger Error Log</button>
+          <button class="btn-green" (click)="handleFlush()">Flush Logs</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

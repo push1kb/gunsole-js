@@ -15,6 +15,7 @@ const DEFAULT_ENDPOINTS: Record<ClientMode, string> = {
 const DEFAULT_CONFIG = {
   batchSize: 10,
   flushInterval: 5000,
+  maxQueueSize: 1000,
 };
 
 /**
@@ -35,13 +36,34 @@ export function resolveEndpoint(
  */
 export function normalizeConfig(config: GunsoleClientConfig): Omit<
   Required<GunsoleClientConfig>,
-  "fetch"
+  "fetch" | "beforeSend" | "sessionId"
 > & {
   endpoint: string;
   fetch?: GunsoleClientConfig["fetch"];
+  beforeSend?: GunsoleClientConfig["beforeSend"];
+  sessionId?: string;
 } {
   if (!config.projectId) {
     throw new Error("projectId is required");
+  }
+  if (config.batchSize !== undefined && config.batchSize < 1) {
+    throw new Error("batchSize must be at least 1");
+  }
+  if (config.flushInterval !== undefined && config.flushInterval < 100) {
+    throw new Error("flushInterval must be at least 100ms");
+  }
+  if (config.maxQueueSize !== undefined && config.maxQueueSize < 1) {
+    throw new Error("maxQueueSize must be at least 1");
+  }
+  if (
+    config.maxLogRate !== undefined &&
+    config.maxLogRate !== 0 &&
+    config.maxLogRate < 1
+  ) {
+    throw new Error("maxLogRate must be 0 (disabled) or at least 1");
+  }
+  if (config.maxBurst !== undefined && config.maxBurst < 1) {
+    throw new Error("maxBurst must be at least 1");
   }
   return {
     projectId: config.projectId,
@@ -54,9 +76,15 @@ export function normalizeConfig(config: GunsoleClientConfig): Omit<
     defaultTags: config.defaultTags ?? {},
     batchSize: config.batchSize ?? DEFAULT_CONFIG.batchSize,
     flushInterval: config.flushInterval ?? DEFAULT_CONFIG.flushInterval,
+    maxQueueSize: config.maxQueueSize ?? DEFAULT_CONFIG.maxQueueSize,
     fetch: config.fetch,
-    isDebug: config.isDebug ?? false,
     isDisabled: config.isDisabled ?? false,
     buckets: config.buckets ?? [],
+    isDebug: config.isDebug ?? false,
+    maxLogRate: config.maxLogRate ?? 10,
+    maxBurst: config.maxBurst ?? 100,
+    beforeSend: config.beforeSend,
+    hooks: config.hooks ?? {},
+    sessionId: config.sessionId,
   };
 }
