@@ -1,5 +1,6 @@
 import { Component, signal } from "@angular/core";
-import { type ActivatedRoute, RouterLink } from "@angular/router";
+// biome-ignore lint/style/useImportType: Angular DI requires value import
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { createGunsoleClient } from "@gunsole/web";
 
 const gunsole = createGunsoleClient({
