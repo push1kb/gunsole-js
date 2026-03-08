@@ -117,7 +117,7 @@ pnpm format      # Format only
 
 All test apps are configured to use:
 
-- **Mode**: `local` (connects to `http://localhost:8787`)
+- **Mode**: `local` (connects to `https://local.gunsole.com`)
 - **Project ID**: `test-project-{framework}`
 - **API Key**: `test-api-key`
 

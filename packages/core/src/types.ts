@@ -3,7 +3,7 @@
  */
 export type FetchFunction = (
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ) => Promise<Response>;
 
 /**
@@ -92,7 +92,7 @@ export interface GunsoleHooks {
 export interface GunsoleClientConfig {
   /** Project identifier */
   projectId: string;
-  /** API key (public or secret). Required for cloud mode. */
+  /** API key (public or secret). Required for cloud and local modes. */
   apiKey?: string;
   /** Client mode (desktop/local/cloud) */
   mode: ClientMode;

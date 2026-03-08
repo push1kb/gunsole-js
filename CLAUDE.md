@@ -60,8 +60,8 @@ App → GunsoleClient.log() → InternalLogEntry → Batch Array → Auto-flush 
 ### Configuration Modes
 
 - `"cloud"`: https://api.gunsole.com
-- `"desktop"`: http://localhost:8787
-- `"local"`: http://localhost:17655
+- `"desktop"`: http://localhost:17655
+- `"local"`: https://local.gunsole.com
 
 ### Public Exports (src/index.ts)
 

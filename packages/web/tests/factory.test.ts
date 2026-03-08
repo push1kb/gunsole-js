@@ -19,7 +19,7 @@ vi.mock("@gunsole/core", async (importOriginal) => {
         setDebug: vi.fn(),
         projectId: config.projectId,
         apiKey: config.apiKey,
-        logEndpoint: "http://localhost:17655/logs",
+        logEndpoint: "https://local.gunsole.com/logs",
         _config: config,
       };
     }),

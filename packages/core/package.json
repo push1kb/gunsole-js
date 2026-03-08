@@ -1,6 +1,6 @@
 {
   "name": "@gunsole/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Gunsole JavaScript/TypeScript SDK for browser and Node.js",
   "type": "module",
   "sideEffects": false,

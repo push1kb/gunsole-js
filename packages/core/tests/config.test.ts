@@ -7,11 +7,11 @@ describe("resolveEndpoint", () => {
   });
 
   it("should return desktop endpoint", () => {
-    expect(resolveEndpoint("desktop")).toBe("http://localhost:8787");
+    expect(resolveEndpoint("desktop")).toBe("http://localhost:17655");
   });
 
   it("should return local endpoint", () => {
-    expect(resolveEndpoint("local")).toBe("http://localhost:17655");
+    expect(resolveEndpoint("local")).toBe("https://local.gunsole.com");
   });
 
   it("should use custom endpoint when provided", () => {
@@ -28,13 +28,34 @@ describe("normalizeConfig", () => {
     );
   });
 
+  it("should throw if apiKey is missing for cloud mode", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "cloud" })
+    ).toThrow("apiKey is required for cloud and local modes");
+  });
+
+  it("should throw if apiKey is missing for local mode", () => {
+    expect(() =>
+      normalizeConfig({ projectId: "test", mode: "local" })
+    ).toThrow("apiKey is required for cloud and local modes");
+  });
+
+  it("should not require apiKey for desktop mode", () => {
+    const config = normalizeConfig({
+      projectId: "test",
+      mode: "desktop",
+    });
+    expect(config.apiKey).toBe("");
+  });
+
   it("should apply default values", () => {
     const config = normalizeConfig({
       projectId: "test",
+      apiKey: "test-key",
       mode: "cloud",
     });
 
-    expect(config.apiKey).toBe("");
+    expect(config.apiKey).toBe("test-key");
     expect(config.env).toBe("");
     expect(config.appName).toBe("");
     expect(config.appVersion).toBe("");
@@ -49,12 +70,13 @@ describe("normalizeConfig", () => {
       projectId: "test",
       mode: "desktop",
     });
-    expect(config.endpoint).toBe("http://localhost:8787");
+    expect(config.endpoint).toBe("http://localhost:17655");
   });
 
   it("should allow custom endpoint to override mode", () => {
     const config = normalizeConfig({
       projectId: "test",
+      apiKey: "test-key",
       mode: "cloud",
       endpoint: "https://custom.example.com",
     });
@@ -88,27 +110,28 @@ describe("normalizeConfig", () => {
 
   it("should throw if batchSize is less than 1", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: 0 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", batchSize: 0 })
     ).toThrow("batchSize must be at least 1");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", batchSize: -5 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", batchSize: -5 })
     ).toThrow("batchSize must be at least 1");
   });
 
   it("should throw if flushInterval is less than 100ms", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 0 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", flushInterval: 0 })
     ).toThrow("flushInterval must be at least 100ms");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", flushInterval: 50 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", flushInterval: 50 })
     ).toThrow("flushInterval must be at least 100ms");
   });
 
   it("should accept valid batchSize and flushInterval", () => {
     const config = normalizeConfig({
       projectId: "test",
+      apiKey: "k",
       mode: "cloud",
       batchSize: 1,
       flushInterval: 100,
@@ -120,6 +143,7 @@ describe("normalizeConfig", () => {
   it("should default maxQueueSize to 1000", () => {
     const config = normalizeConfig({
       projectId: "test",
+      apiKey: "k",
       mode: "cloud",
     });
     expect(config.maxQueueSize).toBe(1000);
@@ -128,6 +152,7 @@ describe("normalizeConfig", () => {
   it("should pass through custom maxQueueSize", () => {
     const config = normalizeConfig({
       projectId: "test",
+      apiKey: "k",
       mode: "cloud",
       maxQueueSize: 500,
     });
@@ -136,11 +161,11 @@ describe("normalizeConfig", () => {
 
   it("should throw if maxQueueSize is less than 1", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: 0 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", maxQueueSize: 0 })
     ).toThrow("maxQueueSize must be at least 1");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud", maxQueueSize: -5 })
+      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", maxQueueSize: -5 })
     ).toThrow("maxQueueSize must be at least 1");
   });
 });
