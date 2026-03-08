@@ -3,7 +3,7 @@
  */
 export type FetchFunction = (
   input: RequestInfo | URL,
-  init?: RequestInit,
+  init?: RequestInit
 ) => Promise<Response>;
 
 /**

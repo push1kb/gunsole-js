@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
  */
 export function resolveEndpoint(
   mode: ClientMode,
-  customEndpoint?: string,
+  customEndpoint?: string
 ): string {
   if (customEndpoint) {
     return customEndpoint;

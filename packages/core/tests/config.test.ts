@@ -29,15 +29,15 @@ describe("normalizeConfig", () => {
   });
 
   it("should throw if apiKey is missing for cloud mode", () => {
-    expect(() =>
-      normalizeConfig({ projectId: "test", mode: "cloud" })
-    ).toThrow("apiKey is required for cloud and local modes");
+    expect(() => normalizeConfig({ projectId: "test", mode: "cloud" })).toThrow(
+      "apiKey is required for cloud and local modes"
+    );
   });
 
   it("should throw if apiKey is missing for local mode", () => {
-    expect(() =>
-      normalizeConfig({ projectId: "test", mode: "local" })
-    ).toThrow("apiKey is required for cloud and local modes");
+    expect(() => normalizeConfig({ projectId: "test", mode: "local" })).toThrow(
+      "apiKey is required for cloud and local modes"
+    );
   });
 
   it("should not require apiKey for desktop mode", () => {
@@ -110,21 +110,41 @@ describe("normalizeConfig", () => {
 
   it("should throw if batchSize is less than 1", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", batchSize: 0 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        batchSize: 0,
+      })
     ).toThrow("batchSize must be at least 1");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", batchSize: -5 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        batchSize: -5,
+      })
     ).toThrow("batchSize must be at least 1");
   });
 
   it("should throw if flushInterval is less than 100ms", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", flushInterval: 0 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        flushInterval: 0,
+      })
     ).toThrow("flushInterval must be at least 100ms");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", flushInterval: 50 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        flushInterval: 50,
+      })
     ).toThrow("flushInterval must be at least 100ms");
   });
 
@@ -161,11 +181,21 @@ describe("normalizeConfig", () => {
 
   it("should throw if maxQueueSize is less than 1", () => {
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", maxQueueSize: 0 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        maxQueueSize: 0,
+      })
     ).toThrow("maxQueueSize must be at least 1");
 
     expect(() =>
-      normalizeConfig({ projectId: "test", apiKey: "k", mode: "cloud", maxQueueSize: -5 })
+      normalizeConfig({
+        projectId: "test",
+        apiKey: "k",
+        mode: "cloud",
+        maxQueueSize: -5,
+      })
     ).toThrow("maxQueueSize must be at least 1");
   });
 });
