@@ -4,6 +4,10 @@ import type {
   GunsoleClientConfig,
   GunsoleHooks,
   InternalLogEntry,
+  LiveChartData,
+  LiveLogOptions,
+  LiveProgressData,
+  LiveTableData,
   LogLevel,
   LogOptions,
   UserInfo,
@@ -145,8 +149,19 @@ export class GunsoleClient<
       return;
     }
 
+    // A live-widget update coalesces with an already-batched entry sharing
+    // the same liveId (chart entries always append, so they never coalesce
+    // and always pay the rate-limit cost). Coalescing replacements are free.
+    const willCoalesce =
+      options.liveId !== undefined &&
+      options.live?.widgetType !== "chart" &&
+      this.batch.some(
+        (entry) =>
+          entry.liveId === options.liveId && entry.live?.widgetType !== "chart"
+      );
+
     // Rate limiting check
-    if (this.rateLimiter && !this.rateLimiter.tryConsume()) {
+    if (!willCoalesce && this.rateLimiter && !this.rateLimiter.tryConsume()) {
       if (this.#shouldDebug()) {
         console.warn("[Gunsole] Log dropped: rate limit exceeded");
       }
@@ -161,6 +176,8 @@ export class GunsoleClient<
         context: options.context,
         timestamp: Date.now(),
         traceId: options.traceId,
+        liveId: options.liveId,
+        live: options.live,
         userId: options.userId ?? this.user?.id,
         sessionId: this.sessionId ?? undefined,
         env: this.config.env || undefined,
@@ -187,7 +204,28 @@ export class GunsoleClient<
         }
       }
 
-      this.batch.push(internalEntry);
+      if (
+        internalEntry.liveId !== undefined &&
+        internalEntry.live?.widgetType !== "chart"
+      ) {
+        let replaced = false;
+        for (let i = this.batch.length - 1; i >= 0; i--) {
+          const entry = this.batch[i];
+          if (
+            entry.liveId === internalEntry.liveId &&
+            entry.live?.widgetType !== "chart"
+          ) {
+            this.batch[i] = internalEntry;
+            replaced = true;
+            break;
+          }
+        }
+        if (!replaced) {
+          this.batch.push(internalEntry);
+        }
+      } else {
+        this.batch.push(internalEntry);
+      }
       this.enforceQueueCap();
 
       // onLog hook
@@ -226,6 +264,101 @@ export class GunsoleClient<
    */
   fatal(options: LogOptions<Tags>): void {
     this.log("fatal", options);
+  }
+
+  /**
+   * Push a card live-widget update. Replaces any pending update sharing the
+   * same `liveId`.
+   *
+   * @example
+   * gunsole.liveCard("deploy-1", "Deploying v1.2.0...");
+   */
+  liveCard(liveId: string, text: string, options?: LiveLogOptions<Tags>): void {
+    this.#logLive(
+      liveId,
+      { widgetType: "card", data: { text } },
+      text.length > 0 ? text : liveId,
+      options
+    );
+  }
+
+  /**
+   * Push a progress live-widget update. Replaces any pending update sharing
+   * the same `liveId`.
+   *
+   * @example
+   * gunsole.liveProgress("upload-1", { current: 40, total: 100 });
+   */
+  liveProgress(
+    liveId: string,
+    data: LiveProgressData,
+    options?: LiveLogOptions<Tags>
+  ): void {
+    this.#logLive(
+      liveId,
+      { widgetType: "progress", data },
+      data.label ?? `${data.current}/${data.total}`,
+      options
+    );
+  }
+
+  /**
+   * Push a table live-widget update. Replaces any pending update sharing the
+   * same `liveId`.
+   *
+   * @example
+   * gunsole.liveTable("results-1", { columns: ["name", "score"], rows: [["a", 1]] });
+   */
+  liveTable(
+    liveId: string,
+    data: LiveTableData,
+    options?: LiveLogOptions<Tags>
+  ): void {
+    this.#logLive(
+      liveId,
+      { widgetType: "table", data },
+      data.title ?? `Table ${liveId}`,
+      options
+    );
+  }
+
+  /**
+   * Append one point to a chart live-widget. Unlike the other live* methods,
+   * chart updates always append rather than replace.
+   *
+   * @example
+   * gunsole.liveChart("cpu-1", { y: 42 });
+   */
+  liveChart(
+    liveId: string,
+    data: LiveChartData,
+    options?: LiveLogOptions<Tags>
+  ): void {
+    this.#logLive(
+      liveId,
+      { widgetType: "chart", data },
+      data.label ?? `Chart ${liveId}`,
+      options
+    );
+  }
+
+  /**
+   * Shared implementation for the live* helper methods
+   */
+  #logLive(
+    liveId: string,
+    live: NonNullable<LogOptions<Tags>["live"]>,
+    message: string,
+    options?: LiveLogOptions<Tags>
+  ): void {
+    this.log(options?.level ?? "info", {
+      message,
+      bucket: options?.bucket ?? "live",
+      liveId,
+      live,
+      tags: options?.tags,
+      context: options?.context,
+    } as LogOptions<Tags>);
   }
 
   /**

@@ -32,7 +32,9 @@ export type ReservedTagKey =
   | "sessionId"
   | "env"
   | "appName"
-  | "appVersion";
+  | "appVersion"
+  | "liveId"
+  | "traceId";
 
 /**
  * Constrains a tag schema to exclude reserved internal field names.
@@ -58,6 +60,99 @@ export interface LogOptions<
   traceId?: string;
   /** Per-call user ID override (useful for server-side contexts) */
   userId?: string;
+  /** Marks this entry as a live-widget update. Entries sharing the same `liveId` coalesce in the pending batch (replace semantics), except `chart` widgets, which always append. Normally set via the `live*` helper methods. */
+  liveId?: string;
+  /** Structured live-widget payload. Normally set via the `live*` helper methods rather than directly. */
+  live?: LiveWidgetPayload;
+}
+
+/**
+ * Discriminant for live-widget payloads
+ */
+export type LiveWidgetType = "card" | "progress" | "table" | "chart";
+
+/**
+ * Data for a `card` live widget — replaces on each update
+ */
+export interface LiveCardData {
+  /** Card body text */
+  text: string;
+}
+
+/**
+ * Data for a `progress` live widget — replaces on each update
+ */
+export interface LiveProgressData {
+  /** Optional label shown above the progress bar */
+  label?: string;
+  /** Current progress value */
+  current: number;
+  /** Target/total value */
+  total: number;
+}
+
+/**
+ * A single cell value in a live table
+ */
+export type LiveTableCell = string | number | boolean | null;
+
+/**
+ * Data for a `table` live widget — replaces on each update
+ */
+export interface LiveTableData {
+  /** Optional table title */
+  title?: string;
+  /** Column headers */
+  columns: string[];
+  /** Row data, one array of cells per row */
+  rows: LiveTableCell[][];
+}
+
+/**
+ * Data for a `chart` live widget — each entry appends ONE point.
+ * Desktop defaults: `x` -> entry timestamp, `series` -> "value",
+ * `chartType` -> "line", `maxPoints` -> 500.
+ */
+export interface LiveChartData {
+  /** Chart rendering type (default: "line") */
+  chartType?: "line" | "bar";
+  /** Optional label for the chart */
+  label?: string;
+  /** X-axis value (default: entry timestamp) */
+  x?: number | string;
+  /** Y-axis value for this point */
+  y: number;
+  /** Series name, for multi-series charts (default: "value") */
+  series?: string;
+  /** Maximum number of points to retain (default: 500) */
+  maxPoints?: number;
+  /** When true, clears prior points for this chart before appending */
+  reset?: boolean;
+}
+
+/**
+ * Structured live-widget payload, discriminated on `widgetType`
+ */
+export type LiveWidgetPayload =
+  | { widgetType: "card"; data: LiveCardData }
+  | { widgetType: "progress"; data: LiveProgressData }
+  | { widgetType: "table"; data: LiveTableData }
+  | { widgetType: "chart"; data: LiveChartData };
+
+/**
+ * Options for the live* helper methods (liveCard, liveProgress, liveTable, liveChart)
+ */
+export interface LiveLogOptions<
+  Tags extends Record<string, string> = Record<string, string>,
+> {
+  /** Bucket/category for the log (default: "live") */
+  bucket?: string;
+  /** Log level (default: "info") */
+  level?: LogLevel;
+  /** Tags for filtering/grouping */
+  tags?: Partial<Tags> | TagEntry<Tags>[];
+  /** Additional context data */
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -160,6 +255,10 @@ export interface InternalLogEntry {
   appName?: string;
   /** Application version */
   appVersion?: string;
+  /** Marks this entry as a live-widget update */
+  liveId?: string;
+  /** Structured live-widget payload */
+  live?: LiveWidgetPayload;
   /** @internal */
   _flushAttempts?: number;
 }

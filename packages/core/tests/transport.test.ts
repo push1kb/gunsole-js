@@ -249,6 +249,40 @@ describe("Transport", () => {
     vi.spyOn(Math, "random").mockRestore();
   });
 
+  it("should serialize liveId and live while still stripping _flushAttempts", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const logs: InternalLogEntry[] = [
+      {
+        level: "info",
+        bucket: "live",
+        message: "42/100",
+        timestamp: Date.now(),
+        liveId: "progress-1",
+        live: {
+          widgetType: "progress",
+          data: { current: 42, total: 100 },
+        },
+        _flushAttempts: 2,
+      },
+    ];
+
+    await transport.sendBatch(logs);
+
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
+    expect(body.logs[0].liveId).toBe("progress-1");
+    expect(body.logs[0].live).toEqual({
+      widgetType: "progress",
+      data: { current: 42, total: 100 },
+    });
+    expect(body.logs[0]._flushAttempts).toBeUndefined();
+  });
+
   it("should strip _flushAttempts from sent payload", async () => {
     const mockFetch = vi.mocked(global.fetch);
     mockFetch.mockResolvedValueOnce({

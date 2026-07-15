@@ -96,6 +96,19 @@ The global error handlers log to the following built-in buckets:
 await gunsole.flush();
 ```
 
+### Live Widgets
+
+Drive small pieces of live UI in Gunsole Desktop — cards, progress bars, tables, and charts — via `liveId`-tagged log entries:
+
+```typescript
+gunsole.liveCard("deploy-1", "Deploying v1.2.0...");
+gunsole.liveProgress("upload-1", { current: 40, total: 100 });
+gunsole.liveTable("results-1", { columns: ["suite", "passed"], rows: [["core", 42]] });
+gunsole.liveChart("cpu-1", { label: "CPU %", y: 73 }); // appends a point
+```
+
+`liveCard`/`liveProgress`/`liveTable` replace the pending update for the same `liveId` before it's flushed; `liveChart` always appends a new point instead. See [SDK Reference](../../docs/sdk-reference.md#live-widgets) for full details, including chart defaults and rate-limit behavior.
+
 ## Configuration
 
 ### Modes
@@ -141,6 +154,7 @@ See [SDK Reference](../../docs/sdk-reference.md) for full API documentation incl
 - ✅ TypeScript support with full type definitions
 - ✅ Tree-shakeable ESM and CJS builds
 - ✅ Global error handler integration
+- ✅ Live widgets (cards, progress, tables, charts) via `liveId`-tagged entries
 
 ## Development
 

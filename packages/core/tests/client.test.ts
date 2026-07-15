@@ -400,6 +400,324 @@ describe("isDisabled", () => {
   });
 });
 
+describe("Live widgets", () => {
+  let config: GunsoleClientConfig;
+
+  beforeEach(() => {
+    config = {
+      projectId: "test-project",
+      apiKey: "test-api-key",
+      mode: "cloud",
+      batchSize: 100, // prevent auto-flush
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should pass liveId and live through log() to the flushed payload", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+
+    const client = createGunsoleClient(config);
+    client.log({
+      message: "Custom live log",
+      bucket: "custom",
+      liveId: "widget-1",
+      live: { widgetType: "card", data: { text: "Hi" } },
+    });
+
+    await client.flush();
+
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(await gunzip(call[1]?.body as Uint8Array));
+    expect(body.logs[0].liveId).toBe("widget-1");
+    expect(body.logs[0].live).toEqual({
+      widgetType: "card",
+      data: { text: "Hi" },
+    });
+
+    await client.destroy();
+  });
+
+  describe("liveCard", () => {
+    it("should batch a card widget entry", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("card-1", "Deploying...");
+
+      const [entry] = client.drainBatch();
+      expect(entry.liveId).toBe("card-1");
+      expect(entry.live).toEqual({
+        widgetType: "card",
+        data: { text: "Deploying..." },
+      });
+      expect(entry.message).toBe("Deploying...");
+      expect(entry.bucket).toBe("live");
+      expect(entry.level).toBe("info");
+
+      client.destroy();
+    });
+
+    it("should fall back to liveId as message when text is empty", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("card-1", "");
+
+      const [entry] = client.drainBatch();
+      expect(entry.message).toBe("card-1");
+
+      client.destroy();
+    });
+
+    it("should allow overriding bucket and level", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("card-1", "Deploying...", {
+        bucket: "deploys",
+        level: "warn",
+      });
+
+      const [entry] = client.drainBatch();
+      expect(entry.bucket).toBe("deploys");
+      expect(entry.level).toBe("warn");
+
+      client.destroy();
+    });
+  });
+
+  describe("liveProgress", () => {
+    it("should batch a progress widget entry with default message", () => {
+      const client = createGunsoleClient(config);
+      client.liveProgress("progress-1", { current: 40, total: 100 });
+
+      const [entry] = client.drainBatch();
+      expect(entry.liveId).toBe("progress-1");
+      expect(entry.live).toEqual({
+        widgetType: "progress",
+        data: { current: 40, total: 100 },
+      });
+      expect(entry.message).toBe("40/100");
+      expect(entry.bucket).toBe("live");
+      expect(entry.level).toBe("info");
+
+      client.destroy();
+    });
+
+    it("should use label as message when provided", () => {
+      const client = createGunsoleClient(config);
+      client.liveProgress("progress-1", {
+        label: "Uploading",
+        current: 1,
+        total: 2,
+      });
+
+      const [entry] = client.drainBatch();
+      expect(entry.message).toBe("Uploading");
+
+      client.destroy();
+    });
+  });
+
+  describe("liveTable", () => {
+    it("should batch a table widget entry with default message", () => {
+      const client = createGunsoleClient(config);
+      client.liveTable("table-1", {
+        columns: ["name", "score"],
+        rows: [["a", 1]],
+      });
+
+      const [entry] = client.drainBatch();
+      expect(entry.liveId).toBe("table-1");
+      expect(entry.live).toEqual({
+        widgetType: "table",
+        data: { columns: ["name", "score"], rows: [["a", 1]] },
+      });
+      expect(entry.message).toBe("Table table-1");
+      expect(entry.bucket).toBe("live");
+
+      client.destroy();
+    });
+
+    it("should use title as message when provided", () => {
+      const client = createGunsoleClient(config);
+      client.liveTable("table-1", {
+        title: "Leaderboard",
+        columns: ["name"],
+        rows: [],
+      });
+
+      const [entry] = client.drainBatch();
+      expect(entry.message).toBe("Leaderboard");
+
+      client.destroy();
+    });
+  });
+
+  describe("liveChart", () => {
+    it("should batch a chart widget entry with default message", () => {
+      const client = createGunsoleClient(config);
+      client.liveChart("chart-1", { y: 42 });
+
+      const [entry] = client.drainBatch();
+      expect(entry.liveId).toBe("chart-1");
+      expect(entry.live).toEqual({ widgetType: "chart", data: { y: 42 } });
+      expect(entry.message).toBe("Chart chart-1");
+      expect(entry.bucket).toBe("live");
+
+      client.destroy();
+    });
+
+    it("should use label as message when provided", () => {
+      const client = createGunsoleClient(config);
+      client.liveChart("chart-1", { label: "CPU", y: 42 });
+
+      const [entry] = client.drainBatch();
+      expect(entry.message).toBe("CPU");
+
+      client.destroy();
+    });
+  });
+
+  describe("coalescing", () => {
+    it("should coalesce two liveCard() calls with the same liveId into one entry with the latest data", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("a", "first");
+      client.liveCard("a", "second");
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(1);
+      expect(batch[0].live).toEqual({
+        widgetType: "card",
+        data: { text: "second" },
+      });
+
+      client.destroy();
+    });
+
+    it("should keep separate entries for different liveIds", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("a", "first");
+      client.liveCard("b", "second");
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(2);
+
+      client.destroy();
+    });
+
+    it("should never coalesce chart entries", () => {
+      const client = createGunsoleClient(config);
+      client.liveChart("c", { y: 1 });
+      client.liveChart("c", { y: 2 });
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(2);
+
+      client.destroy();
+    });
+
+    it("should let a later widget type win when coalescing under the same liveId", () => {
+      const client = createGunsoleClient(config);
+      client.liveCard("x", "card text");
+      client.liveTable("x", { columns: ["a"], rows: [] });
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(1);
+      expect(batch[0].live?.widgetType).toBe("table");
+
+      client.destroy();
+    });
+
+    it("should coalesce with a re-queued entry after a failed flush", async () => {
+      const mockFetch = vi.mocked(global.fetch);
+      mockFetch.mockRejectedValue(new Error("Network error"));
+
+      const client = createGunsoleClient(config);
+      client.liveCard("a", "first");
+
+      await client.flush(); // fails (after internal retries), re-queues "first"
+
+      client.liveCard("a", "second");
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(1);
+      expect(batch[0].live).toEqual({
+        widgetType: "card",
+        data: { text: "second" },
+      });
+
+      await client.destroy();
+    });
+  });
+
+  describe("rate limiting", () => {
+    it("should let replacements through for free while gating new liveIds and chart appends", () => {
+      const client = createGunsoleClient({
+        ...config,
+        maxLogRate: 1,
+        maxBurst: 1,
+      });
+
+      client.liveCard("a", "first"); // consumes the only token
+      client.liveCard("a", "newer"); // replacement — free, still lands
+      client.liveCard("b", "third"); // new liveId — no tokens left, dropped
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(1);
+      expect(batch[0].liveId).toBe("a");
+      expect(batch[0].live).toEqual({
+        widgetType: "card",
+        data: { text: "newer" },
+      });
+
+      client.destroy();
+    });
+
+    it("should consume a token for every chart append", () => {
+      const client = createGunsoleClient({
+        ...config,
+        maxLogRate: 1,
+        maxBurst: 1,
+      });
+
+      client.liveChart("c", { y: 1 }); // consumes the only token
+      client.liveChart("c", { y: 2 }); // appends, but no tokens left — dropped
+
+      const batch = client.drainBatch();
+      expect(batch).toHaveLength(1);
+      expect(batch[0].live).toEqual({
+        widgetType: "chart",
+        data: { y: 1 },
+      });
+
+      client.destroy();
+    });
+  });
+
+  it("should allow beforeSend to drop live entries", () => {
+    const client = createGunsoleClient({
+      ...config,
+      beforeSend: (entry) => (entry.liveId ? null : entry),
+    });
+
+    client.liveCard("a", "first");
+    client.log({ message: "normal", bucket: "test" });
+
+    const batch = client.drainBatch();
+    expect(batch).toHaveLength(1);
+    expect(batch[0].message).toBe("normal");
+
+    client.destroy();
+  });
+
+  it("should throw when a bucket name collides with a live* method", () => {
+    for (const name of ["liveCard", "liveProgress", "liveTable", "liveChart"]) {
+      expect(() =>
+        createGunsoleClient({
+          ...config,
+          buckets: [name],
+        })
+      ).toThrow(`Bucket name "${name}" conflicts with a reserved`);
+    }
+  });
+});
+
 describe("Destroyed state guard", () => {
   let config: GunsoleClientConfig;
 

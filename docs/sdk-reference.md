@@ -96,10 +96,88 @@ Every log method accepts a `LogOptions` object:
 | `context` | `Record<string, unknown>`               | no       | Additional structured data         |
 | `tags`    | `Partial<Tags> \| TagEntry<Tags>[]`     | no       | Tags for filtering/grouping        |
 | `traceId` | `string`                                | no       | Trace ID for distributed tracing   |
+| `liveId`  | `string`                                | no       | Marks this entry as a live-widget update. Normally set via the `live*` helpers below. |
+| `live`    | `LiveWidgetPayload`                     | no       | Structured live-widget payload. Normally set via the `live*` helpers below. |
 
 ### Log Levels
 
 `"info"` | `"debug"` | `"warn"` | `"error"`
+
+## Live Widgets
+
+Live widgets let a log entry drive a small piece of live UI in Gunsole Desktop — a card, a progress bar, a table, or a chart — instead of just a text line. A "live" update is a normal log entry with two extra fields: `liveId` (the widget's identity) and `live` (its structured payload).
+
+### Helpers
+
+```ts
+// Card — replaces on each call
+gunsole.liveCard("deploy-1", "Deploying v1.2.0...");
+gunsole.liveCard("deploy-1", "Deploy complete"); // replaces the card above
+
+// Progress — replaces on each call
+gunsole.liveProgress("upload-1", { current: 40, total: 100 });
+gunsole.liveProgress("upload-1", { label: "Uploading", current: 80, total: 100 });
+
+// Table — replaces on each call
+gunsole.liveTable("results-1", {
+  title: "Test results",
+  columns: ["suite", "passed", "failed"],
+  rows: [
+    ["core", 42, 0],
+    ["web", 27, 1],
+  ],
+});
+
+// Chart — APPENDS one point per call, does not replace
+gunsole.liveChart("cpu-1", { label: "CPU %", y: 73 });
+gunsole.liveChart("cpu-1", { label: "CPU %", y: 81 });
+```
+
+Each helper accepts an optional `LiveLogOptions` object as its last argument:
+
+```ts
+{
+  bucket?: string;   // default: "live"
+  level?: LogLevel;  // default: "info"
+  tags?: Partial<Tags> | TagEntry<Tags>[];
+  context?: Record<string, unknown>;
+}
+```
+
+### Plain card fallback
+
+A regular log with `liveId` but no `live` payload renders as a card from `message` — no special SDK handling required:
+
+```ts
+gunsole.info({ bucket: "app", message: "Step 3 of 5 complete", liveId: "wizard-1" });
+```
+
+### Chart append semantics
+
+Chart entries are the one exception to replace semantics: **each `liveChart()` call appends a single point** rather than replacing the widget. Desktop fills in sensible defaults when omitted:
+
+- `x` → the entry's timestamp
+- `series` → `"value"`
+- `chartType` → `"line"`
+- `maxPoints` → `500` (oldest points are dropped once exceeded)
+
+Pass `reset: true` on a chart update to clear prior points for that `liveId` before appending the new one (useful when starting a new run under the same chart identity).
+
+```ts
+gunsole.liveChart("cpu-1", { y: 12, reset: true }); // starts a fresh series
+```
+
+### Coalescing
+
+Non-chart live updates (`card`, `progress`, `table`) use **replace semantics** within the pending batch: if a second update for the same `liveId` is logged before the batch flushes, it replaces the earlier pending entry in place rather than sending both. This keeps rapid-fire progress updates cheap — only the latest state is ever sent. Switching widget types under the same `liveId` (e.g. `liveCard("x", ...)` then `liveTable("x", ...)`) also coalesces; the newer widget type wins.
+
+Chart updates never coalesce — every `liveChart()` call is queued and sent so no data points are lost.
+
+### Rate limiting
+
+Live updates go through the same token-bucket rate limiter (`maxLogRate` / `maxBurst`) as regular logs, with one exception: **a coalescing replacement (card/progress/table updates to an already-queued `liveId`) does not consume a token**, since it doesn't add a new entry to the batch. A brand-new `liveId` and every `liveChart()` append do consume a token as usual.
+
+In practice this means you can call `liveProgress()` or `liveCard()` as often as you like for the same `liveId` without exhausting your rate limit — but chart points are metered like regular logs. If you're streaming metrics via `liveChart()`, throttle updates to a few points per second, or raise `maxLogRate` in the client config for high-frequency use cases.
 
 ## Typed Bucket Accessors
 
@@ -243,7 +321,7 @@ gunsole.log({
 
 Tag keys that collide with internal log entry fields are rejected at compile time. The following tag keys are reserved:
 
-`bucket`, `message`, `level`, `timestamp`, `userId`, `sessionId`, `env`, `appName`, `appVersion`
+`bucket`, `message`, `level`, `timestamp`, `userId`, `sessionId`, `env`, `appName`, `appVersion`, `liveId`, `traceId`
 
 ```ts
 // Compile-time error: Type '{ level: string }' does not satisfy ValidTagSchema
@@ -381,6 +459,14 @@ ngOnDestroy() { this.gunsole.destroy(); }
 | `ValidateBuckets`      | Compile-time bucket name validator                    |
 | `ReservedTagKey`       | Union of reserved tag keys                            |
 | `ValidTagSchema`       | Compile-time tag schema constraint                    |
+| `LiveLogOptions`       | Options accepted by the `live*` helper methods         |
+| `LiveWidgetType`       | `"card" \| "progress" \| "table" \| "chart"`          |
+| `LiveWidgetPayload`    | Discriminated union of live-widget payloads            |
+| `LiveCardData`         | Data shape for a `card` live widget                    |
+| `LiveProgressData`     | Data shape for a `progress` live widget                |
+| `LiveTableData`        | Data shape for a `table` live widget                   |
+| `LiveTableCell`        | Cell value type for `LiveTableData` rows                |
+| `LiveChartData`        | Data shape for a `chart` live widget                    |
 
 ## TypeScript Requirements
 

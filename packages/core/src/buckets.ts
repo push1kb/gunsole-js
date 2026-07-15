@@ -51,7 +51,11 @@ export type ReservedBucketName =
   | "apiKey"
   | "logEndpoint"
   | "attachGlobalErrorHandlers"
-  | "detachGlobalErrorHandlers";
+  | "detachGlobalErrorHandlers"
+  | "liveCard"
+  | "liveProgress"
+  | "liveTable"
+  | "liveChart";
 
 /**
  * Validates a buckets tuple at the type level — reserved names become `never`
@@ -79,6 +83,10 @@ const RESERVED_NAMES: Set<string> = new Set<ReservedBucketName>([
   "logEndpoint",
   "attachGlobalErrorHandlers",
   "detachGlobalErrorHandlers",
+  "liveCard",
+  "liveProgress",
+  "liveTable",
+  "liveChart",
 ]);
 
 /**
